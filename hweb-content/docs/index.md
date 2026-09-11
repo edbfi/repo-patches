@@ -6,7 +6,7 @@ hide:
 
 <div class="e74-hero" markdown>
 
-# :material-docker: dc.edb.fi { .e74-hero-title }
+# :material-docker: web.edb.fi { .e74-hero-title }
 
 **Docker containers for the media server enthusiast**
 { .e74-hero-subtitle }

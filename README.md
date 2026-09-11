@@ -1,6 +1,6 @@
 # Repository update candidates
 
-Prepare reviewed upstream updates for `edbfi/base-image` and the documentation site at `dc.edb.fi`. Every run works in a disposable clone and retains a patch, recovery bundle and revision report. No workflow pushes branches, bypasses protection, publishes images or sends messages. No personal access token is required.
+Prepare reviewed upstream updates for `edbfi/base-image` and the documentation site at `web.edb.fi`. Every run works in a disposable clone and retains a patch, recovery bundle and revision report. No workflow pushes branches, bypasses protection, publishes images or sends messages. No personal access token is required.
 
 `tools/prepare_sync.py` merges upstream changes using the exact `.upstream.json` revision recorded in the destination. It preserves destination changes and stops on conflicts or invalid provenance. Website candidates additionally apply the canonical `hweb-content/` overlay, retaining tag data for supported containers and inherited runtime assets. The original GPL/AGPL licenses and upstream attribution remain applicable.
 
