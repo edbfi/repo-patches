@@ -5,7 +5,7 @@ title: edbfi/sabnzbd
 ---
 
 [:octicons-mark-github-16: GitHub](https://github.com/edbfi/sabnzbd){ class="header-links" target="_blank" rel="noopener" }
-[:octicons-container-16: ghcr.io](https://github.com/orgs/edbfi/packages/container/package/sabnzbd){ class="header-links" target="_blank" rel="noopener" }
+[:octicons-container-16: ghcr.io](https://github.com/users/edbfi/packages/container/package/sabnzbd){ class="header-links" target="_blank" rel="noopener" }
 
 [:octicons-link-16: Upstream Project](https://sabnzbd.org){ class="header-links" target="_blank" rel="noopener" }
 
@@ -30,6 +30,10 @@ title: edbfi/sabnzbd
     </tbody>
   </table>
 </div>
+
+!!! note "Image migration in progress"
+
+    The `ghcr.io/edbfi` image below is not published yet. These examples will become available after this image completes migration.
 
 ## Starting the container
 
