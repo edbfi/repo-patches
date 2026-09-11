@@ -17,16 +17,9 @@ title: edbfi/obzorarr
 
 !!! note "Branches and Tags"
 
-    This project maintains multiple branches, each with its own Docker tag:
+    **`:nightly`** is available for amd64 and arm64. It is built from a reviewed, pinned application revision and published after native runtime checks.
 
-    - **`:release` (or `:latest`)**:
-      Stable releases built from tagged versions of the [obzorarr](https://github.com/edbfi/obzorarr) repository.
-
-    - **`:nightly`**:
-      Built from every commit to the main branch, providing the latest development features.
-
-    - **`:pr`**:
-      Built from the [`pr`](https://github.com/edbfi/obzorarr-docker/tree/pr) branch. This tag is used for testing pull request changes and experimental builds before they are merged into the main codebase.
+    Stable version **0.1.11** is preserved. The `release`, `latest` and `pr` image tags are not yet published in this namespace.
 
 <div id="tags-table">
   <table>
@@ -39,16 +32,14 @@ title: edbfi/obzorarr
       </tr>
     </thead>
     <tbody id="tags-table-body">
-<tr><td><div class="tag-decoration-latest">latest</div><div id="tag3001" onclick="CopyToClipboard('tag3001');return false;" class="tag-decoration">release</div></td><td>Releases</td><td><a href="https://github.com/edbfi/obzorarr-docker/commits/release" target="_blank">View commits</a></td><td><a href="https://github.com/edbfi/obzorarr-docker/actions" target="_blank">View builds</a></td></tr>
 <tr><td><div id="tag3002" onclick="CopyToClipboard('tag3002');return false;" class="tag-decoration">nightly</div></td><td>Nightly builds</td><td><a href="https://github.com/edbfi/obzorarr-docker/commits/nightly" target="_blank">View commits</a></td><td><a href="https://github.com/edbfi/obzorarr-docker/actions" target="_blank">View builds</a></td></tr>
-<tr><td><div id="tag3003" onclick="CopyToClipboard('tag3003');return false;" class="tag-decoration">pr</div></td><td>Pull request testing</td><td><a href="https://github.com/edbfi/obzorarr-docker/commits/pr" target="_blank">View commits</a></td><td><a href="https://github.com/edbfi/obzorarr-docker/actions" target="_blank">View builds</a></td></tr>
     </tbody>
   </table>
 </div>
 
-!!! note "Image migration in progress"
+!!! note "Persistent configuration"
 
-    The `ghcr.io/edbfi` image below is not published yet. These examples will become available after this image completes migration.
+    Keep your `/config` volume when replacing the container. Back it up before upgrading; it contains the application database and settings.
 
 ## Starting the container
 
@@ -63,7 +54,7 @@ title: edbfi/obzorarr
         -e UMASK=002 \
         -e TZ="Etc/UTC" \
         -v /<host_folder_config>:/config \
-        ghcr.io/edbfi/obzorarr-docker
+        ghcr.io/edbfi/obzorarr-docker:nightly
     ```
 
 === "compose"
@@ -72,7 +63,7 @@ title: edbfi/obzorarr
     services:
       obzorarr:
         container_name: obzorarr
-        image: ghcr.io/edbfi/obzorarr-docker
+        image: ghcr.io/edbfi/obzorarr-docker:nightly
         ports:
           - "3000:3000"
         environment:
