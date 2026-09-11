@@ -3,9 +3,9 @@ site_url: https://web.edb.fi
 site_author: edbfi
 site_description: Documentation for Docker images maintained by edbfi.
 copyright: 'Copyright &copy; 2023-2026 engels74<br>Based on <a href="https://hotio.dev" target="_blank" rel="noopener">hotio.dev</a>. Logos based on work by <a href="https://www.flaticon.com/authors/freepik" target="_blank" rel="noopener">Freepik</a> from <a href="https://www.flaticon.com" target="_blank" rel="noopener">flaticon.com</a> and <a href="https://freeicons.io/profile/6200" target="_blank" rel="noopener">Soni Sokell</a> on <a href="https://freeicons.io" target="_blank" rel="noopener">freeicons.io</a>'
-repo_name: edbfi/repo-patches
-repo_url: https://github.com/edbfi/repo-patches
-edit_uri: 'edit/main/hweb-content/docs/'
+repo_name: edbfi/website
+repo_url: https://github.com/edbfi/website
+edit_uri: 'https://github.com/edbfi/repo-patches/edit/main/hweb-content/docs/'
 site_dir: .build
 docs_dir: docs
 
