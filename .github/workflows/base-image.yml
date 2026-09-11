@@ -1,116 +1,28 @@
-name: Sync and Update Repository
-
+name: Prepare base-image update
 on:
   workflow_dispatch:
-
-concurrency:
-  group: sync-base-image
-  cancel-in-progress: false
-
+    inputs:
+      branch:
+        type: choice
+        options: [workflows, alpinevpn, noblevpn]
+        required: true
+permissions:
+  contents: read
 jobs:
-  sync_hotio_base_image:
-    runs-on: ubuntu-latest
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
-          repository: engels74/base-image
-          token: ${{ secrets.GH_PAT }}
-          fetch-depth: 0
-
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Add Upstream Repository
-        run: git remote add upstream https://github.com/hotio/base.git
-
-      - name: Fetch Upstream
-        run: git fetch upstream
-
-      - name: Sync and Apply Custom Updates
-        run: |
-          set -e
-
-          # Branches in hotio's listing order: workflows (default), then alpinevpn, noblevpn
-          BRANCHES_TO_SYNC="workflows alpinevpn noblevpn"
-          TARGET_REPO_OWNER="engels74"
-          UPSTREAM_REPO_OWNER="hotio"
-
-          for branch in $BRANCHES_TO_SYNC; do
-            echo "--- Processing branch: $branch ---"
-
-            # 1. Hard reset to upstream
-            git checkout -B "$branch" "upstream/$branch"
-            if [ $? -ne 0 ]; then
-              echo "Error checking out upstream/$branch. Skipping."
-              continue
-            fi
-
-            # 2a. Repoint call-build.yml at engels74/base-image@workflows
-            CALL_BUILD=".github/workflows/call-build.yml"
-            if [[ -f "$CALL_BUILD" ]]; then
-              sed -i 's|hotio/base/.github/workflows/build-on-call.yml@workflows|engels74/base-image/.github/workflows/build-on-call.yml@workflows|' "$CALL_BUILD"
-              echo "Updated $CALL_BUILD"
-            fi
-
-            # 2b. Repoint call-update.yml at engels74/base-image@workflows
-            CALL_UPDATE=".github/workflows/call-update.yml"
-            if [[ -f "$CALL_UPDATE" ]]; then
-              sed -i 's|hotio/base/.github/workflows/update-on-call.yml@workflows|engels74/base-image/.github/workflows/update-on-call.yml@workflows|' "$CALL_UPDATE"
-              echo "Updated $CALL_UPDATE"
-            fi
-
-            # 2c. Branding patches — only on the image branches, not on workflows
-            if [[ "$branch" != "workflows" ]]; then
-              INIT_SETUP="root/etc/s6-overlay/s6-rc.d/init-setup/run"
-              if [[ -f "$INIT_SETUP" ]]; then
-                sed -i '/figlet/ s/hotio/engels74/' "$INIT_SETUP"
-                sed -i '/Donate:/ s|https://hotio.dev/donate|https://engels74.net/donate|' "$INIT_SETUP"
-                sed -i '/Documentation:/ s|https://hotio.dev|https://engels74.net|' "$INIT_SETUP"
-                sed -i '/Support:/ s|https://hotio.dev/discord|https://github.com/engels74/$(jq -r '"'"'.app'"'"' <<< "${IMAGE_STATS}")/issues|' "$INIT_SETUP"
-                echo "Patched $INIT_SETUP with engels74 branding"
-              fi
-
-              README="README.md"
-              printf '%s\n' \
-                '# base-image (engels74)' \
-                '' \
-                '## For full documentation' \
-                '' \
-                'Detailed information and documentation available on the [alpinevpn branch README](https://github.com/engels74/base-image/tree/alpinevpn).' > "$README"
-              echo "Overwritten $README"
-            fi
-
-            # 3. Commit & force-push
-            if [[ -n $(git status --porcelain) ]]; then
-              git add .
-              git commit -m "Sync with upstream ($UPSTREAM_REPO_OWNER/base@$branch) and apply custom updates"
-              git push origin "$branch" --force
-            else
-              echo "No changes detected on branch '$branch'."
-            fi
-
-            echo "--- Finished processing branch: $branch ---"
-            echo ""
-          done
-
-          echo "All specified branches processed."
-
-      - name: Checkout Repo Patches Repository
-        uses: actions/checkout@v7
+          persist-credentials: false
+      - name: Prepare candidate
+        env:
+          BRANCH: ${{ inputs.branch }}
+        run: python3 tools/prepare_sync.py --target base-image --branch "$BRANCH" --output evidence
+      - uses: actions/upload-artifact@v7.0.1
         with:
-          repository: engels74/repo-patches
-          token: ${{ secrets.GH_PAT }}
-          path: repo-patches
-          ref: main
-
-      - name: Create and Push Empty Commit to Repo Patches
-        working-directory: ./repo-patches
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit --allow-empty -m "chore: Trigger downstream workflows [skip ci]"
-          git push origin main
-          echo "Empty commit pushed to engels74/repo-patches on branch main."
+          name: base-image-candidate
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14

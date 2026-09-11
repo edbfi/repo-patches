@@ -1,11 +1,11 @@
 ---
 hide:
   - toc
-title: engels74/caddy
+title: edbfi/caddy
 ---
 
-[:octicons-mark-github-16: GitHub](https://github.com/engels74/caddy){ class="header-links" target="_blank" rel="noopener" }
-[:octicons-container-16: ghcr.io](https://github.com/orgs/engels74/packages/container/package/caddy){ class="header-links" target="_blank" rel="noopener" }
+[:octicons-mark-github-16: GitHub](https://github.com/edbfi/caddy){ class="header-links" target="_blank" rel="noopener" }
+[:octicons-container-16: ghcr.io](https://github.com/orgs/edbfi/packages/container/package/caddy){ class="header-links" target="_blank" rel="noopener" }
 
 [:octicons-link-16: Upstream Project](https://caddyserver.com){ class="header-links" target="_blank" rel="noopener" }
 
@@ -26,7 +26,7 @@ title: engels74/caddy
       </tr>
     </thead>
     <tbody id="tags-table-body">
-<tr><td><div class="tag-decoration-latest">latest</div><div id="tag2001" onclick="CopyToClipboard('tag2001');return false;" class="tag-decoration">release</div></td><td>Releases</td><td><a href="https://github.com/engels74/caddy/commits/release" target="_blank">View commits</a></td><td><a href="https://github.com/engels74/caddy/actions" target="_blank">View builds</a></td></tr>
+<tr><td><div class="tag-decoration-latest">latest</div><div id="tag2001" onclick="CopyToClipboard('tag2001');return false;" class="tag-decoration">release</div></td><td>Releases</td><td><a href="https://github.com/edbfi/caddy/commits/release" target="_blank">View commits</a></td><td><a href="https://github.com/edbfi/caddy/actions" target="_blank">View builds</a></td></tr>
     </tbody>
   </table>
 </div>
@@ -46,7 +46,7 @@ title: engels74/caddy
         -e TZ="Etc/UTC" \
         -e CUSTOM_BUILD="" \
         -v /<host_folder_config>:/config \
-        ghcr.io/engels74/caddy
+        ghcr.io/edbfi/caddy
     ```
 
 === "compose"
@@ -55,7 +55,7 @@ title: engels74/caddy
     services:
       caddy:
         container_name: caddy
-        image: ghcr.io/engels74/caddy
+        image: ghcr.io/edbfi/caddy
         ports:
           - "80:8080"
           - "443:8443"

@@ -1,11 +1,11 @@
-site_name: engels74.net
-site_url: https://engels74.net
-site_author: engels74
-site_description: Documentation for Docker images maintained by engels74.
+site_name: dc.edb.fi
+site_url: https://dc.edb.fi
+site_author: edbfi
+site_description: Documentation for Docker images maintained by edbfi.
 copyright: 'Copyright &copy; 2023-2026 engels74<br>Based on <a href="https://hotio.dev" target="_blank" rel="noopener">hotio.dev</a>. Logos based on work by <a href="https://www.flaticon.com/authors/freepik" target="_blank" rel="noopener">Freepik</a> from <a href="https://www.flaticon.com" target="_blank" rel="noopener">flaticon.com</a> and <a href="https://freeicons.io/profile/6200" target="_blank" rel="noopener">Soni Sokell</a> on <a href="https://freeicons.io" target="_blank" rel="noopener">freeicons.io</a>'
-repo_name: engels74
-repo_url: https://github.com/engels74
-edit_uri: 'hweb/edit/master/docs'
+repo_name: edbfi/repo-patches
+repo_url: https://github.com/edbfi/repo-patches
+edit_uri: 'edit/main/hweb-content/docs/'
 site_dir: .build
 docs_dir: docs
 
@@ -15,7 +15,7 @@ extra:
     link: 'https://github.com/sponsors/mrhotio'
     name: Donate to Hotio
   - icon: fontawesome/brands/github
-    link: 'https://github.com/engels74'
+    link: 'https://github.com/edbfi'
     name: GitHub
 
 extra_css:
@@ -31,7 +31,7 @@ theme:
   icon:
     repo: fontawesome/brands/github
     annotation: material/information
-  favicon: img/engels74.svg
+  favicon: img/edbfi.svg
   features:
     - navigation.instant
     - navigation.instant.prefetch
@@ -49,7 +49,7 @@ theme:
     - content.tabs.link
     - toc.follow
   language: en
-  logo: img/engels74.svg
+  logo: img/edbfi.svg
   name: material
   palette:
     - media: "(prefers-color-scheme: light)"
@@ -101,14 +101,12 @@ nav:
 - Home: index.md
 - Containers:
   - Base Images:
-    - engels74/base-image: containers/base-image.md
+    - edbfi/base-image: containers/base-image.md
   - Apps:
-    - engels74/caddy: containers/caddy.md
-    - engels74/overseerr-anime: containers/overseerr-anime.md
-    - engels74/qbittorrent: containers/qbittorrent.md
-    - engels74/qflood: containers/qflood.md
-    - engels74/sabnzbd: containers/sabnzbd.md
-  - engels74:
-    - engels74/obzorarr: containers/obzorarr.md
-    - engels74/tgraph-bot: containers/tgraph-bot.md
+    - edbfi/caddy: containers/caddy.md
+    - edbfi/qbittorrent: containers/qbittorrent.md
+    - edbfi/qflood: containers/qflood.md
+    - edbfi/sabnzbd: containers/sabnzbd.md
+  - edbfi:
+    - edbfi/obzorarr: containers/obzorarr.md
 - FAQ: faq.md

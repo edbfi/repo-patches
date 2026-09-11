@@ -6,7 +6,7 @@ hide:
 
 <div class="e74-hero" markdown>
 
-# :material-docker: engels74.net { .e74-hero-title }
+# :material-docker: dc.edb.fi { .e74-hero-title }
 
 **Docker containers for the media server enthusiast**
 { .e74-hero-subtitle }
@@ -42,7 +42,6 @@ Revived projects, enhanced images, and original creations — all with Docker CL
 <div class="e74-container-pills" markdown>
 
 [Caddy](containers/caddy.md){ .e74-pill .e74-pill--apps }
-[Overseerr](containers/overseerr-anime.md){ .e74-pill .e74-pill--apps }
 [qBittorrent](containers/qbittorrent.md){ .e74-pill .e74-pill--apps }
 [qFlood](containers/qflood.md){ .e74-pill .e74-pill--apps }
 [SABnzbd](containers/sabnzbd.md){ .e74-pill .e74-pill--apps }
@@ -58,7 +57,6 @@ Revived projects, enhanced images, and original creations — all with Docker CL
 <div class="e74-container-pills" markdown>
 
 [Obzorarr](containers/obzorarr.md){ .e74-pill .e74-pill--custom }
-[tgraph-bot](containers/tgraph-bot.md){ .e74-pill .e74-pill--custom }
 
 </div>
 
@@ -86,6 +84,6 @@ This project builds on [hotio's](https://hotio.dev) excellent work. Consider sup
 
 <div class="e74-footer-note" markdown>
 
-For support, open an issue on the relevant [GitHub repository](https://github.com/engels74){ target=_blank rel="noopener" }.
+For support, open an issue on the relevant [GitHub repository](https://github.com/edbfi){ target=_blank rel="noopener" }.
 
 </div>
