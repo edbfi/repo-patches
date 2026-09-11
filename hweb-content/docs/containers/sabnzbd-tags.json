@@ -1,12 +1,45 @@
 {
   "release": {
-    "commit_message": "Initial setup",
-    "commit_sha": "0000000",
+    "commit_message": "ci: migrate release image validation and publication (#1)",
+    "commit_sha": "85b79928514202014ce33fe5d160c6b628d0913a",
     "description": "Releases",
-    "hide": false,
-    "last_updated": "2026-01-09T00:00:00.000Z",
-    "last_updated_url": "https://github.com/engels74/sabnzbd/actions",
-    "latest": true,
-    "tags": ["latest", "release", "", "", "", ""]
+    "last_updated": "2026-09-11T13:19:34Z",
+    "last_updated_url": "https://github.com/edbfi/sabnzbd/actions/runs/34604142789",
+    "tags": [
+      "release",
+      "release-85b7992",
+      "release-5.1.3",
+      "release-v5",
+      "release-v5.1",
+      "release-v5.1.3",
+      "latest"
+    ]
+  },
+  "testing": {
+    "commit_message": "ci: migrate testing image validation and publication (#2)",
+    "commit_sha": "2a769cfca41f02ec4a89d8110f1a03d6550cc9cc",
+    "description": "Pre-releases",
+    "last_updated": "2026-09-11T13:20:41Z",
+    "last_updated_url": "https://github.com/edbfi/sabnzbd/actions/runs/34604186863",
+    "tags": [
+      "testing",
+      "testing-2a769cf",
+      "testing-5.1.3",
+      "testing-v5",
+      "testing-v5.1",
+      "testing-v5.1.3"
+    ]
+  },
+  "nightly": {
+    "commit_message": "ci: migrate nightly image validation and publication (#3)",
+    "commit_sha": "97c951f365c700a24e83f4159b7af21907f67484",
+    "description": "Pinned nightly snapshot",
+    "last_updated": "2026-09-11T13:20:54Z",
+    "last_updated_url": "https://github.com/edbfi/sabnzbd/actions/runs/34604236381",
+    "tags": [
+      "nightly",
+      "nightly-97c951f",
+      "nightly-cfde583ccc1896ef8aa32bc05961c3cefbdaa5d3"
+    ]
   }
 }
