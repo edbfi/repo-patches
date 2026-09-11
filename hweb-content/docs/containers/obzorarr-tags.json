@@ -1,32 +1,14 @@
 {
-  "release": {
-    "commit_message": "Initial setup",
-    "commit_sha": "0000000",
-    "description": "Releases",
-    "hide": false,
-    "last_updated": "2026-01-09T00:00:00.000Z",
-    "last_updated_url": "https://github.com/engels74/obzorarr-docker/actions",
-    "latest": true,
-    "tags": ["latest", "release", "", "", "", ""]
-  },
   "nightly": {
-    "commit_message": "Initial setup",
-    "commit_sha": "0000000",
-    "description": "Nightly builds",
-    "hide": false,
-    "last_updated": "2026-01-09T00:00:00.000Z",
-    "last_updated_url": "https://github.com/engels74/obzorarr-docker/actions",
-    "latest": false,
-    "tags": ["nightly", "", "", "", "", ""]
-  },
-  "pr": {
-    "commit_message": "Initial setup",
-    "commit_sha": "0000000",
-    "description": "Pull request testing",
-    "hide": false,
-    "last_updated": "2026-01-09T00:00:00.000Z",
-    "last_updated_url": "https://github.com/engels74/obzorarr-docker/actions",
-    "latest": false,
-    "tags": ["pr", "", "", "", "", ""]
+    "commit_message": "refactor: migrate nightly packaging and validated publication (#7)",
+    "commit_sha": "3f51699d85db1e84e72c6a4d987d11e69295e454",
+    "description": "Pinned nightly snapshot",
+    "last_updated": "2026-09-11T18:02:38Z",
+    "last_updated_url": "https://github.com/edbfi/obzorarr-docker/actions/runs/34630805189",
+    "tags": [
+      "nightly",
+      "nightly-3f51699",
+      "nightly-2c77c2817cf2d63b76107d1b09369ce7e5e8e99c"
+    ]
   }
 }
