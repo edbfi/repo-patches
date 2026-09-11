@@ -35,10 +35,6 @@ title: edbfi/qbittorrent
   </table>
 </div>
 
-!!! note "Image migration in progress"
-
-    The `ghcr.io/edbfi` image below is not published yet. These examples will become available after this image completes migration.
-
 ## Starting the container
 
 === "cli"
