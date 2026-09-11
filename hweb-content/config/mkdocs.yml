@@ -109,4 +109,5 @@ nav:
     - edbfi/sabnzbd: containers/sabnzbd.md
   - edbfi:
     - edbfi/obzorarr: containers/obzorarr.md
+    - edbfi/otpravkarr: containers/otpravkarr.md
 - FAQ: faq.md

@@ -57,6 +57,7 @@ Revived projects, enhanced images, and original creations — all with Docker CL
 <div class="e74-container-pills" markdown>
 
 [Obzorarr](containers/obzorarr.md){ .e74-pill .e74-pill--custom }
+[Otpravkarr](containers/otpravkarr.md){ .e74-pill .e74-pill--custom }
 
 </div>
 
