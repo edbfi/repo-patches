@@ -29,7 +29,7 @@ class OverlayTests(unittest.TestCase):
         self.assertEqual((self.root / 'includes/wireguard.md').read_text(), 'inherited')
         self.assertEqual((self.root / 'docs/CNAME').read_text().strip(), 'web.edb.fi')
         self.assertEqual({p.stem for p in (self.root / 'docs/containers').glob('*.md')},
-                         {'base-image', 'caddy', 'obzorarr', 'otpravkarr', 'qbittorrent', 'qflood', 'sabnzbd'})
+                         {'base-image', 'caddy', 'obzorarr', 'otpravkarr', 'qbittorrent', 'qflood', 'sabnzbd', 'zondarr'})
         self.assertFalse((self.root / 'docs/scripts').exists())
         self.assertFalse((self.root / 'docs/img/image-logos/obsolete.svg').exists())
         self.assertTrue((self.root / 'docs/img/image-logos/flood.svg').exists())
