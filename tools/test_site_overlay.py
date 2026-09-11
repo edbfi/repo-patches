@@ -27,7 +27,7 @@ class OverlayTests(unittest.TestCase):
         self.assertEqual(json.loads((self.root / 'docs/containers/caddy-tags.json').read_text()), {'retained': 'digest'})
         self.assertEqual(json.loads((self.root / 'docs/containers/base-image-tags.json').read_text()), {})
         self.assertEqual((self.root / 'includes/wireguard.md').read_text(), 'inherited')
-        self.assertEqual((self.root / 'docs/CNAME').read_text().strip(), 'dc.edb.fi')
+        self.assertEqual((self.root / 'docs/CNAME').read_text().strip(), 'web.edb.fi')
         self.assertEqual({p.stem for p in (self.root / 'docs/containers').glob('*.md')},
                          {'base-image', 'caddy', 'obzorarr', 'qbittorrent', 'qflood', 'sabnzbd'})
         self.assertFalse((self.root / 'docs/scripts').exists())

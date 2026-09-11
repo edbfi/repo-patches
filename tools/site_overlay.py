@@ -45,5 +45,5 @@ def apply_overlay(root, source):
         if file.is_file() and file.stem not in kept_logos: file.unlink()
     for file in (source / "assets/img/image-logos").iterdir():
         if file.is_file() and file.stem in kept_logos: shutil.copy2(file, logos)
-    if (root / "docs/CNAME").read_text().strip() != "dc.edb.fi":
+    if (root / "docs/CNAME").read_text().strip() != "web.edb.fi":
         raise ValueError("Unexpected documentation domain")
