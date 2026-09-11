@@ -1,0 +1,14 @@
+{
+  "nightly": {
+    "commit_message": "refactor: migrate nightly packaging and verified publication (#3)",
+    "commit_sha": "4395b32111a8c3da3ef11ea60776b4fe50540294",
+    "description": "Pinned nightly snapshot",
+    "last_updated": "2026-09-11T19:37:57Z",
+    "last_updated_url": "https://github.com/edbfi/zondarr-docker/actions/runs/34639589340",
+    "tags": [
+      "nightly",
+      "nightly-4395b32",
+      "nightly-fc12de46f6333cd32f07f7219ae14cd5c8a0ebcd"
+    ]
+  }
+}
