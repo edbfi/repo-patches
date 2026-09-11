@@ -1,89 +1,27 @@
-name: Watch hotio/base for new commits
-
-# Cron-triggered watcher: if hotio/base@<branch> has new non-bot commits
-# since our last sync (= parent of engels74/base-image@<branch>'s HEAD),
-# dispatch base-image.yml. Skips runs when upstream only has automation
-# commits (digest/version bumps), because engels74/base-image@alpinevpn
-# and @noblevpn already auto-update those independently via call-update.yml.
-
+name: Inspect base upstream updates
 on:
   workflow_dispatch:
-  schedule:
-    # Every 6 hours at :37 to avoid the :00/:30 cron stampede.
-    - cron: '37 */6 * * *'
-
 permissions:
   contents: read
-  actions: write   # required to dispatch base-image.yml in this repo
-
 jobs:
-  check:
-    runs-on: ubuntu-latest
+  inspect:
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: [workflows, alpinevpn, noblevpn]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
-      - name: Detect upstream non-bot commits
-        id: detect
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Prepare candidate against recorded upstream
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -eu
-          NEEDS_SYNC=false
-
-          # NOTE: For now we treat any commit NOT authored by github-actions[bot]
-          # as a "real" change worth syncing. If hotio/base ever attracts noisy
-          # third-party bot accounts (Renovate, Dependabot, etc.) or we decide
-          # we only want to mirror mrhotio's direct work, narrow this filter to
-          #     select(.author.login == "hotio" or .author.login == "mrhotio")
-          # in the jq expression below.
-          NON_HUMAN_LOGINS='["github-actions[bot]"]'
-
-          for br in workflows alpinevpn noblevpn; do
-            echo "=== ${br} ==="
-
-            last_synced=$(gh api "repos/engels74/base-image/commits/${br}" \
-              --jq '.parents[0].sha // ""')
-            upstream_head=$(gh api "repos/hotio/base/commits/${br}" --jq '.sha')
-
-            if [[ -z "$last_synced" ]]; then
-              echo "  WARN: no parent SHA on engels74 HEAD; treating as needs-sync"
-              NEEDS_SYNC=true
-              continue
-            fi
-
-            echo "  last synced from: ${last_synced:0:7}"
-            echo "  upstream HEAD:    ${upstream_head:0:7}"
-
-            if [[ "$last_synced" == "$upstream_head" ]]; then
-              echo "  in sync — skip"
-              continue
-            fi
-
-            # Count commits on upstream since our last-synced SHA that are NOT
-            # by any of the excluded bot logins. If compare fails (e.g. upstream
-            # force-pushed and the SHA no longer exists), fail safe by syncing.
-            # gh api's built-in --jq doesn't accept --argjson, so we pipe the
-            # raw response through a standalone jq.
-            if ! compare_json=$(gh api "repos/hotio/base/compare/${last_synced}...${upstream_head}" 2>/dev/null); then
-              echo "  WARN: compare failed; treating as needs-sync"
-              NEEDS_SYNC=true
-              continue
-            fi
-
-            humans=$(jq --argjson excluded "$NON_HUMAN_LOGINS" \
-              '[.commits[] | select((.author.login // "") as $l | $excluded | index($l) | not)] | length' \
-              <<<"$compare_json")
-
-            echo "  ${humans} non-bot commit(s) since last sync"
-            if [[ "${humans:-0}" -gt 0 ]]; then
-              NEEDS_SYNC=true
-            fi
-          done
-
-          echo "needs_sync=${NEEDS_SYNC}" >> "$GITHUB_OUTPUT"
-
-      - name: Dispatch base-image.yml
-        if: steps.detect.outputs.needs_sync == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Upstream has new non-bot commits; dispatching base-image.yml"
-          gh workflow run base-image.yml --repo "${GITHUB_REPOSITORY}"
+          BRANCH: ${{ matrix.branch }}
+        run: python3 tools/prepare_sync.py --target base-image --branch "$BRANCH" --output evidence
+      - uses: actions/upload-artifact@v7.0.1
+        with:
+          name: base-${{ matrix.branch }}-candidate
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14

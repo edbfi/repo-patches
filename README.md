@@ -1,70 +1,23 @@
-# repo-patches
+# Repository update candidates
 
-GitHub Actions workflows and modular content for syncing engels74's Docker container repositories and documentation website from upstream [hotio](https://github.com/hotio) sources.
+Prepare reviewed upstream updates for `edbfi/base-image` and the documentation site at `dc.edb.fi`. Every run works in a disposable clone and retains a patch, recovery bundle and revision report. No workflow pushes branches, bypasses protection, publishes images or sends messages. No personal access token is required.
 
-## Workflows
+`tools/prepare_sync.py` merges upstream changes using the exact `.upstream.json` revision recorded in the destination. It preserves destination changes and stops on conflicts or invalid provenance. Website candidates additionally apply the canonical `hweb-content/` overlay, retaining tag data for supported containers and inherited runtime assets. The original GPL/AGPL licenses and upstream attribution remain applicable.
 
-| Workflow | Target Repository | Upstream Source | Trigger |
-|----------|-------------------|-----------------|---------|
-| `base-image.yml` | `engels74/base-image` | `hotio/base` | Manual dispatch |
-| `sync-hweb.yml` | `engels74/website` | `hotio/website` | Manual dispatch (with dry-run option) |
+## Run locally
 
-Both workflows apply engels74 branding and customizations during sync.
-
-## Content Structure
-
-```
-hweb-content/
-├── config/
-│   └── mkdocs.yml                  # Site configuration (navigation, branding)
-├── docs/
-│   ├── index.md                    # Homepage
-│   ├── faq.md                      # FAQ (redirects to hotio.dev)
-│   ├── CNAME                       # Domain: engels74.net
-│   ├── overrides/
-│   │   └── main.html               # Theme overrides
-│   └── containers/                 # Documentation and tag metadata
-│       ├── base-image.md / .json
-│       ├── caddy.md / .json
-│       ├── obzorarr.md / .json
-│       ├── overseerr-anime.md / .json
-│       ├── qbittorrent.md / .json
-│       ├── qflood.md / .json
-│       ├── sabnzbd.md / .json
-│       └── tgraph-bot.md / .json
-└── assets/
-    ├── stylesheets/
-    │   └── extra-custom.css        # Custom theme styles
-    └── img/
-        ├── engels74.svg            # Site logo
-        └── image-logos/            # Container logos
+```sh
+python3 -m unittest discover -s tools -p 'test_*.py'
+python3 tools/prepare_sync.py --target base-image --branch alpinevpn --output /tmp/base-candidate
+python3 tools/prepare_sync.py --target website --branch master --output /tmp/site-candidate
 ```
 
-## Containers
+Output directories must be empty. Website preparation requires the destination repository and reviewed `.upstream.json` bootstrap; it is staged until those exist. Manual Actions workflows provide the same operations. The watcher prepares all three base branches; it does not dispatch updates or run on a schedule during rollout.
 
-| Container | Description |
-|-----------|-------------|
-| base-image | Alpine-based foundation image with VPN and s6-overlay support |
-| caddy | Caddy 2 web server with custom modules |
-| obzorarr | Original container (not in upstream) |
-| overseerr-anime | Overseerr fork with anime instance support |
-| qbittorrent | qBittorrent with libtorrent v2 |
-| qflood | qBittorrent with Flood web UI |
-| sabnzbd | SABnzbd usenet client |
-| tgraph-bot | Original container (not in upstream) |
+Review `result.json` and `candidate.patch`, verify the destination still equals the recorded base, then apply the patch on a maintainer branch and create a Conventional Commit with your matching Signed-off-by line. The bundle retains the generated candidate for recovery. Open a PR, require complete destination CI, and merge through the normal protected branch flow. Publishing is a separate manual operation in the image repository.
 
-## Sync Behavior
+## Canonical documentation
 
-**Replaced:** MkDocs configuration, homepage, FAQ, all container documentation, CNAME, branding assets
+Six container pages are retained: base-image, caddy, obzorarr, qbittorrent, qflood and sabnzbd. The pages describe the intended image namespace; availability depends on each image's migration and publication. Navigation and index links must match the page inventory. Source logos include upstream credits in the site footer. Internal `e74-*` CSS selectors remain for compatibility.
 
-**Preserved from upstream:** VPN include snippets, base stylesheets, JavaScript utilities, affiliate banners, container logos for kept images
-
-**Removed:** Container docs not in the keep list, scripts section, guides section, unused images
-
-## Requirements
-
-**Secret:** `GH_PAT` - Personal Access Token with `repo` scope
-
-## License
-
-AGPL-3.0
+The overlay maps config/mkdocs.yml to the website root, docs content into docs/, docs/overrides/main.html to overrides/main.html, and assets into docs/img and docs/stylesheets. Required upstream includes, JavaScript and extra-13.css remain inherited. Existing tag JSON is preserved for every retained container; missing data starts as an empty object. Unrelated upstream guides/scripts and container pages/logos are excluded from the assembled candidate.

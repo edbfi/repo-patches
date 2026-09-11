@@ -1,11 +1,11 @@
 ---
 hide:
   - toc
-title: engels74/qflood
+title: edbfi/qflood
 ---
 
-[:octicons-mark-github-16: GitHub](https://github.com/engels74/qflood){ class="header-links" target="_blank" rel="noopener" }
-[:octicons-container-16: ghcr.io](https://github.com/orgs/engels74/packages/container/package/qflood){ class="header-links" target="_blank" rel="noopener" }
+[:octicons-mark-github-16: GitHub](https://github.com/edbfi/qflood){ class="header-links" target="_blank" rel="noopener" }
+[:octicons-container-16: ghcr.io](https://github.com/orgs/edbfi/packages/container/package/qflood){ class="header-links" target="_blank" rel="noopener" }
 
 [:octicons-link-16: Upstream Project](https://github.com/jesec/flood){ class="header-links" target="_blank" rel="noopener" }
 
@@ -30,8 +30,8 @@ title: engels74/qflood
       </tr>
     </thead>
     <tbody id="tags-table-body">
-<tr><td><div class="tag-decoration-latest">latest</div><div id="tag6001" onclick="CopyToClipboard('tag6001');return false;" class="tag-decoration">release</div></td><td>Releases</td><td><a href="https://github.com/engels74/qflood/commits/release" target="_blank">View commits</a></td><td><a href="https://github.com/engels74/qflood/actions" target="_blank">View builds</a></td></tr>
-<tr><td><div id="tag6002" onclick="CopyToClipboard('tag6002');return false;" class="tag-decoration">nightly</div></td><td>Nightly builds</td><td><a href="https://github.com/engels74/qflood/commits/nightly" target="_blank">View commits</a></td><td><a href="https://github.com/engels74/qflood/actions" target="_blank">View builds</a></td></tr>
+<tr><td><div class="tag-decoration-latest">latest</div><div id="tag6001" onclick="CopyToClipboard('tag6001');return false;" class="tag-decoration">release</div></td><td>Releases</td><td><a href="https://github.com/edbfi/qflood/commits/release" target="_blank">View commits</a></td><td><a href="https://github.com/edbfi/qflood/actions" target="_blank">View builds</a></td></tr>
+<tr><td><div id="tag6002" onclick="CopyToClipboard('tag6002');return false;" class="tag-decoration">nightly</div></td><td>Nightly builds</td><td><a href="https://github.com/edbfi/qflood/commits/nightly" target="_blank">View commits</a></td><td><a href="https://github.com/edbfi/qflood/actions" target="_blank">View builds</a></td></tr>
     </tbody>
   </table>
 </div>
@@ -55,7 +55,7 @@ title: engels74/qflood
         -e FLOOD_ARGS="" \
         -v /<host_folder_config>:/config \
         -v /<host_folder_data>:/data \
-        ghcr.io/engels74/qflood
+        ghcr.io/edbfi/qflood
     ```
 
 === "compose"
@@ -64,7 +64,7 @@ title: engels74/qflood
     services:
       qflood:
         container_name: qflood
-        image: ghcr.io/engels74/qflood
+        image: ghcr.io/edbfi/qflood
         ports:
           - "8080:8080"
           - "3000:3000"

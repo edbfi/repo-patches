@@ -1,11 +1,11 @@
 ---
 hide:
   - toc
-title: engels74/base-image
+title: edbfi/base-image
 ---
 
-[:octicons-mark-github-16: GitHub](https://github.com/engels74/base-image){ class="header-links" target="_blank" rel="noopener" }
-[:octicons-container-16: ghcr.io](https://github.com/orgs/engels74/packages/container/package/base-image){ class="header-links" target="_blank" rel="noopener" }
+[:octicons-mark-github-16: GitHub](https://github.com/edbfi/base-image){ class="header-links" target="_blank" rel="noopener" }
+[:octicons-container-16: ghcr.io](https://github.com/orgs/edbfi/packages/container/package/base-image){ class="header-links" target="_blank" rel="noopener" }
 
 [:octicons-link-16: Upstream Project](https://github.com/hotio/base){ class="header-links" target="_blank" rel="noopener" }
 
@@ -26,8 +26,8 @@ title: engels74/base-image
       </tr>
     </thead>
     <tbody id="tags-table-body">
-<tr><td><div class="tag-decoration-latest">latest</div><div id="tag1001" onclick="CopyToClipboard('tag1001');return false;" class="tag-decoration">alpinevpn</div></td><td>Alpine with VPN support</td><td><a href="https://github.com/engels74/base-image/commits/alpinevpn" target="_blank">View commits</a></td><td><a href="https://github.com/engels74/base-image/actions" target="_blank">View builds</a></td></tr>
-<tr><td><div id="tag1002" onclick="CopyToClipboard('tag1002');return false;" class="tag-decoration">noblevpn</div></td><td>Noble (Ubuntu) with VPN support</td><td><a href="https://github.com/engels74/base-image/commits/noblevpn" target="_blank">View commits</a></td><td><a href="https://github.com/engels74/base-image/actions" target="_blank">View builds</a></td></tr>
+<tr><td><div class="tag-decoration-latest">latest</div><div id="tag1001" onclick="CopyToClipboard('tag1001');return false;" class="tag-decoration">alpinevpn</div></td><td>Alpine with VPN support</td><td><a href="https://github.com/edbfi/base-image/commits/alpinevpn" target="_blank">View commits</a></td><td><a href="https://github.com/edbfi/base-image/actions" target="_blank">View builds</a></td></tr>
+<tr><td><div id="tag1002" onclick="CopyToClipboard('tag1002');return false;" class="tag-decoration">noblevpn</div></td><td>Noble (Ubuntu) with VPN support</td><td><a href="https://github.com/edbfi/base-image/commits/noblevpn" target="_blank">View commits</a></td><td><a href="https://github.com/edbfi/base-image/actions" target="_blank">View builds</a></td></tr>
     </tbody>
   </table>
 </div>
@@ -44,7 +44,7 @@ title: engels74/base-image
         -e UMASK=002 \
         -e TZ="Etc/UTC" \
         -v /<host_folder_config>:/config \
-        ghcr.io/engels74/base-image:alpinevpn
+        ghcr.io/edbfi/base-image:alpinevpn
     ```
 
 === "compose"
@@ -53,7 +53,7 @@ title: engels74/base-image
     services:
       base-image:
         container_name: base-image
-        image: ghcr.io/engels74/base-image:alpinevpn
+        image: ghcr.io/edbfi/base-image:alpinevpn
         environment:
           - PUID=1000
           - PGID=1000
