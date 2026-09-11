@@ -1,12 +1,18 @@
 {
   "release": {
-    "commit_message": "Initial setup",
-    "commit_sha": "0000000",
+    "commit_message": "chore(image): migrate Caddy modules and native validation (#1)",
+    "commit_sha": "cb9c089059ef61f13bf6797dde10869cb2abdaf9",
     "description": "Releases",
-    "hide": false,
-    "last_updated": "2026-01-09T00:00:00.000Z",
-    "last_updated_url": "https://github.com/engels74/caddy/actions",
-    "latest": true,
-    "tags": ["latest", "release", "", "", "", ""]
+    "last_updated": "2026-09-11T11:22:34.000Z",
+    "last_updated_url": "https://github.com/edbfi/caddy/actions/runs/34593583613",
+    "tags": [
+      "release",
+      "release-cb9c089",
+      "release-2.11.4",
+      "release-v2",
+      "release-v2.11",
+      "release-v2.11.4",
+      "latest"
+    ]
   }
 }
