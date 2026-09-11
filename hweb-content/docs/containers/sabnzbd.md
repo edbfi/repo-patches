@@ -31,9 +31,7 @@ title: edbfi/sabnzbd
   </table>
 </div>
 
-!!! note "Image migration in progress"
-
-    The `ghcr.io/edbfi` image below is not published yet. These examples will become available after this image completes migration.
+The `release` (also `latest`), `testing` and `nightly` images are published for amd64 and arm64 after native validation and review. Testing currently contains the same 5.1.3 release; nightly is a pinned 5.2.0 development snapshot. Updates and publication are manual.
 
 ## Starting the container
 
