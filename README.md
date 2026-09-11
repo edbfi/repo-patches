@@ -18,6 +18,6 @@ Review `result.json` and `candidate.patch`, verify the destination still equals 
 
 ## Canonical documentation
 
-Six container pages are retained: base-image, caddy, obzorarr, qbittorrent, qflood and sabnzbd. The pages describe the intended image namespace; availability depends on each image's migration and publication. Navigation and index links must match the page inventory. Source logos include upstream credits in the site footer. Internal `e74-*` CSS selectors remain for compatibility.
+Seven container pages are retained: base-image, caddy, obzorarr, otpravkarr, qbittorrent, qflood and sabnzbd. The pages describe the intended image namespace; availability depends on each image's migration and publication. Navigation and index links must match the page inventory. Source logos include upstream credits in the site footer. Internal `e74-*` CSS selectors remain for compatibility.
 
 The overlay maps config/mkdocs.yml to the website root, docs content into docs/, docs/overrides/main.html to overrides/main.html, and assets into docs/img and docs/stylesheets. Required upstream includes, JavaScript and extra-13.css remain inherited. Existing tag JSON is preserved for every retained container; missing data starts as an empty object. Unrelated upstream guides/scripts and container pages/logos are excluded from the assembled candidate.

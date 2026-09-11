@@ -1,0 +1,14 @@
+{
+  "nightly": {
+    "commit_message": "refactor: migrate nightly packaging and verified publication (#3)",
+    "commit_sha": "035f48f422c3e2ddea809cd550da2f6b43bc2bd0",
+    "description": "Pinned nightly snapshot",
+    "last_updated": "2026-09-11T18:37:02Z",
+    "last_updated_url": "https://github.com/edbfi/otpravkarr-docker/actions/runs/34634010066",
+    "tags": [
+      "nightly",
+      "nightly-035f48f",
+      "nightly-35167eee9fb10b073489415bf7370cfa51baa2e3"
+    ]
+  }
+}
