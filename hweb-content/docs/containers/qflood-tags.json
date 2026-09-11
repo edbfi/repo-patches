@@ -1,27 +1,33 @@
 {
   "release": {
-    "commit_message": "chore(image): migrate qFlood release with native integration checks (#1)",
-    "commit_sha": "4ff0ab5bf49819f4676919b3a1e46c98711bae93",
+    "commit_message": "fix(image): preserve qBittorrent aliases for composite versions (#3)",
+    "commit_sha": "b924cd2f50a1c388f7fd5c95952c6ca9452e1cc0",
     "description": "Releases",
-    "last_updated": "2026-09-11T12:30:55Z",
-    "last_updated_url": "https://github.com/edbfi/qflood/actions/runs/34599123103",
+    "last_updated": "2026-09-11T12:46:07Z",
+    "last_updated_url": "https://github.com/edbfi/qflood/actions/runs/34600454530",
     "tags": [
       "release",
-      "release-4ff0ab5",
+      "release-b924cd2",
       "release-5.2.3--4.16.1",
+      "release-v5",
+      "release-v5.2",
+      "release-v5.2.3",
       "latest"
     ]
   },
   "nightly": {
-    "commit_message": "chore(image): migrate pinned qFlood nightly snapshot (#2)",
-    "commit_sha": "30fba9385b19de794e7bf632155c0e64c7441105",
+    "commit_message": "fix(image): preserve qBittorrent aliases for composite versions (#4)",
+    "commit_sha": "24fc91ce26d8b8fe5ea410b96c855d1b67f375a2",
     "description": "Pinned nightly snapshot",
-    "last_updated": "2026-09-11T12:32:51Z",
-    "last_updated_url": "https://github.com/edbfi/qflood/actions/runs/34599283402",
+    "last_updated": "2026-09-11T12:41:40Z",
+    "last_updated_url": "https://github.com/edbfi/qflood/actions/runs/34600062043",
     "tags": [
       "nightly",
-      "nightly-30fba93",
-      "nightly-5.2.3--33316725515"
+      "nightly-24fc91c",
+      "nightly-5.2.3--33316725515",
+      "nightly-v5",
+      "nightly-v5.2",
+      "nightly-v5.2.3"
     ]
   }
 }
