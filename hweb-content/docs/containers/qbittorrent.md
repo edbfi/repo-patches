@@ -5,7 +5,7 @@ title: edbfi/qbittorrent
 ---
 
 [:octicons-mark-github-16: GitHub](https://github.com/edbfi/qbittorrent){ class="header-links" target="_blank" rel="noopener" }
-[:octicons-container-16: ghcr.io](https://github.com/orgs/edbfi/packages/container/package/qbittorrent){ class="header-links" target="_blank" rel="noopener" }
+[:octicons-container-16: ghcr.io](https://github.com/users/edbfi/packages/container/package/qbittorrent){ class="header-links" target="_blank" rel="noopener" }
 
 [:octicons-link-16: Upstream Project](https://github.com/qbittorrent/qbittorrent){ class="header-links" target="_blank" rel="noopener" }
 
@@ -34,6 +34,10 @@ title: edbfi/qbittorrent
     </tbody>
   </table>
 </div>
+
+!!! note "Image migration in progress"
+
+    The `ghcr.io/edbfi` image below is not published yet. These examples will become available after this image completes migration.
 
 ## Starting the container
 
