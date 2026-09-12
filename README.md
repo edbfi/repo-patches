@@ -2,7 +2,7 @@
 
 Prepare reviewed upstream updates for `edbfi/base-image` and the documentation site at `web.edb.fi`. Every run works in a disposable clone and retains a patch, recovery bundle and revision report. No workflow pushes branches, bypasses protection, publishes images or sends messages. No personal access token is required.
 
-`tools/prepare_sync.py` merges upstream changes using the exact `.upstream.json` revision recorded in the destination. It preserves destination changes and stops on conflicts or invalid provenance. Website candidates additionally apply the canonical `hweb-content/` overlay, retaining tag data for supported containers and inherited runtime assets. The original GPL/AGPL licenses and upstream attribution remain applicable.
+`tools/prepare_sync.py` merges upstream changes using the exact `.upstream.json` revision recorded in the destination. It preserves destination changes and stops on conflicts or invalid provenance. For website updates, the canonical container inventory filters excluded pages, tags, logos, guides and scripts from all three merge inputs first. Upstream edits to intentionally excluded content therefore cannot restore it or block preparation. Canonical pages, navigation and branding are applied to all three inputs, and retained image-tag JSON comes only from the destination. Hotio tag updates cannot overwrite edbfi publication data. Conflicts in shared inherited content still stop for review. Website candidates additionally apply the canonical `hweb-content/` overlay, retaining tag data for supported containers and inherited runtime assets. The original GPL/AGPL licenses and upstream attribution remain applicable.
 
 ## Run locally
 
@@ -14,7 +14,7 @@ python3 tools/prepare_sync.py --target website --branch master --output /tmp/sit
 
 Output directories must be empty. Website preparation requires the destination repository and reviewed `.upstream.json` bootstrap; it is staged until those exist. Manual Actions workflows provide the same operations. The watcher prepares all three base branches; it does not dispatch updates or run on a schedule during rollout.
 
-Review `result.json` and `candidate.patch`, verify the destination still equals the recorded base, then apply the patch on a maintainer branch and create a Conventional Commit with your matching Signed-off-by line. The bundle retains the generated candidate for recovery. Open a PR, require complete destination CI, and merge through the normal protected branch flow. Publishing is a separate manual operation in the image repository.
+Review `result.json` and `candidate.patch`, verify the destination still equals the recorded base, then apply the patch on a maintainer branch and create a Conventional Commit with your matching Signed-off-by line. The bundle retains the generated candidate for recovery. Open a PR, require complete destination CI, and merge through the maintainer's reviewed ghmerge flow after exact head/base, full diff, author/sign-off, all CI jobs and relevant artifacts are verified. Do not configure branch protections or rulesets. Publishing is a separate manual operation in the image repository.
 
 ## Canonical documentation
 
