@@ -1,4 +1,7 @@
 {
-  "extends": ["github>edbfi/automation:default#v1.0.0", "github>edbfi/automation:mixed#v1.0.0"],
-  "automerge": false
+  "extends": [
+    "github>edbfi/automation//default.json#v1.1.0",
+    "github>edbfi/automation//mixed.json#v1.1.0",
+    "github>edbfi/automation//automerge.json#v1.1.0"
+  ]
 }
