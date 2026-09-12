@@ -3,6 +3,7 @@
 """Prepare upstream updates in a disposable clone; never push or replace history."""
 import argparse
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -14,6 +15,28 @@ TARGETS = {"base-image": ("hotio/base", {"workflows", "alpinevpn", "noblevpn"}),
 
 def git(root, *args):
     return subprocess.check_output(["git", "-C", str(root), *args], text=True).strip()
+
+
+def filtered_site_commit(root, revision, names, owned):
+    """Filter an immutable tree using a separate index, without touching checkout."""
+    from site_overlay import excluded_path
+    paths = subprocess.check_output(
+        ["git", "-C", str(root), "ls-tree", "-r", "--name-only", "-z", revision]
+    ).split(b"\0")
+    removed = [path for path in paths if path and excluded_path(path.decode(), names)]
+    with tempfile.TemporaryDirectory(prefix="site-index-") as temp:
+        env = dict(os.environ, GIT_INDEX_FILE=str(Path(temp) / "index"))
+        def indexed(*args, data=None):
+            return subprocess.check_output(["git", "-C", str(root), *args], input=data, env=env)
+        indexed("read-tree", revision)
+        if removed:
+            indexed("update-index", "--force-remove", "-z", "--stdin", data=b"\0".join(removed) + b"\0")
+        for path, blob in owned.items():
+            indexed("update-index", "--add", "--cacheinfo", "100644," + blob + "," + path)
+        tree = indexed("write-tree").decode().strip()
+    return git(root, "-c", "user.name=github-actions[bot]",
+               "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com",
+               "commit-tree", tree, "-m", "Temporary inventory-filtered merge input")
 
 
 def prepare(root, upstream_sha, target, branch, output, overlay=None):
@@ -33,8 +56,33 @@ def prepare(root, upstream_sha, target, branch, output, overlay=None):
         raise ValueError("Invalid recorded upstream revision")
     git(root, "cat-file", "-e", previous + "^{commit}")
     base = git(root, "rev-parse", "HEAD")
+    merge_previous, merge_base, merge_upstream = previous, base, upstream_sha
+    if target == "website":
+        if overlay is None:
+            raise ValueError("Website overlay is required")
+        from site_overlay import container_names, OVERLAY_MAPPING
+        names = container_names(overlay)
+        owned_files = {new: (overlay / old).read_bytes() for old, new in OVERLAY_MAPPING.items()}
+        for name in names:
+            owned_files["docs/containers/" + name + ".md"] = (overlay / "docs/containers" / (name + ".md")).read_bytes()
+            tag_path = "docs/containers/" + name + "-tags.json"
+            tags = root / tag_path
+            if tags.is_symlink():
+                raise ValueError("Container tags cannot be a symlink")
+            content = tags.read_bytes() if tags.exists() else b"{}\n"
+            json.loads(content)
+            owned_files[tag_path] = content
+        for logo in (overlay / "assets/img/image-logos").iterdir():
+            if logo.is_file() and logo.stem in names | {"flood"}:
+                owned_files["docs/img/image-logos/" + logo.name] = logo.read_bytes()
+        owned = {path: subprocess.check_output(
+            ["git", "-C", str(root), "hash-object", "-w", "--stdin"], input=content
+        ).decode().strip() for path, content in owned_files.items()}
+        merge_previous, merge_base, merge_upstream = (
+            filtered_site_commit(root, revision, names, owned) for revision in (previous, base, upstream_sha)
+        )
     result = subprocess.run(["git", "-C", str(root), "merge-tree", "--write-tree",
-                             "--merge-base", previous, base, upstream_sha],
+                             "--merge-base", merge_previous, merge_base, merge_upstream],
                             text=True, capture_output=True)
     if result.returncode:
         raise ValueError("Upstream merge conflicts; resolve a reviewed candidate manually. " + result.stdout)
