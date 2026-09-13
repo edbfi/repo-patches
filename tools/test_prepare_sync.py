@@ -14,6 +14,9 @@ class SyncFixture(unittest.TestCase):
         self.root.mkdir()
         self.out = Path(self.temp.name) / 'evidence'
         git(self.root, 'init', '-b', 'main')
+        # Finish Git housekeeping before TemporaryDirectory removes the fixture.
+        git(self.root, 'config', 'maintenance.autoDetach', 'false')
+        git(self.root, 'config', 'gc.autoDetach', 'false')
         git(self.root, 'config', 'user.name', 'Test')
         git(self.root, 'config', 'user.email', 'test@example.com')
         (self.root / 'shared.txt').write_text('original\n')

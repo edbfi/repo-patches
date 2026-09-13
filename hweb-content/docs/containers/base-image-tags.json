@@ -5,7 +5,7 @@
     "description": "Alpine with VPN support",
     "hide": false,
     "last_updated": "2026-01-09T00:00:00.000Z",
-    "last_updated_url": "https://github.com/engels74/base-image/actions",
+    "last_updated_url": "https://github.com/edbfi/base-image/actions",
     "latest": true,
     "tags": ["latest", "alpinevpn", "", "", "", ""]
   },
@@ -15,7 +15,7 @@
     "description": "Noble (Ubuntu) with VPN support",
     "hide": false,
     "last_updated": "2026-01-09T00:00:00.000Z",
-    "last_updated_url": "https://github.com/engels74/base-image/actions",
+    "last_updated_url": "https://github.com/edbfi/base-image/actions",
     "latest": false,
     "tags": ["noblevpn", "", "", "", "", ""]
   }
