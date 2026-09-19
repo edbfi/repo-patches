@@ -16,12 +16,13 @@ strict up-to-date branch protection and stronger repository review requirements.
 Explicit CI dispatches validate the current PR/default SHA at the start and gate;
 they cannot substitute for a missing metadata policy result.
 
-Renovate is the only ongoing dependency merge owner. Direct automerge remains
-disabled, including matching package rules, until the shared rollout proves a
-native Renovate canary behind complete required CI. The legacy Actions merger
+Renovate is the only ongoing dependency merge owner after the protected native
+canary [automation#39](https://github.com/edbfi/automation/pull/39). Root-level
+automerge uses PR rebase merges, preserving signed commits, complete current-head
+CI and policy checks, current branches, release ages, reviews and hold labels.
+Shared automation configuration updates remain manual. The legacy Actions merger
 and its comment commands are retired. Shared actions, workflows and presets
-use the immutable `v3.0.0` release. Merges must satisfy current CI and repository
-policy; inspect the resulting default-branch run after each merge.
+use immutable `v3.0.1` references. Inspect default-branch CI after each merge.
 
 Upstream preparation and its tests remain read-only. Manual candidate workflows
 retain their patches, bundles and revision reports; no downstream dispatch,
