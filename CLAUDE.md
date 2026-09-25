@@ -41,7 +41,7 @@ Derived from commits c9652be and f68dd81. Touch all of these together:
 
 - Base-image branches: `TARGETS` in `tools/prepare_sync.py`, the `options` in `.github/workflows/base-image.yml` and the `matrix` in `.github/workflows/watch-hotio-base.yml`.
 - Runner label `ubuntu-26.04`: every `runs-on` and `.github/actionlint.yaml`. Actionlint rejects any label that isn't listed there.
-- `edbfi/automation` version (`v3.0.1`): `ci.yml` (4 uses), `pr-policy.yml` and both presets in `renovate.json`.
+- `edbfi/automation` version (`v4.0.0`): `ci.yml` (2 uses), `pr-policy.yml` and all three presets in `renovate.json`.
 
 ## Commits
 

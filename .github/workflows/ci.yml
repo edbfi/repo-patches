@@ -5,19 +5,6 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      pr-number:
-        description: PR number for a repair dispatch
-        type: string
-        default: ''
-      expected-head-sha:
-        description: Exact repaired PR commit
-        type: string
-        default: ''
-      expected-default-sha:
-        description: Exact default-branch commit requested after a checked merge
-        type: string
-        default: ''
 permissions:
   contents: read
   pull-requests: read
@@ -25,18 +12,7 @@ concurrency:
   group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
-  guard:
-    runs-on: ubuntu-26.04
-    timeout-minutes: 5
-    steps:
-      - uses: edbfi/automation/actions/dispatch-guard@v3.1.0
-        with:
-          token: ${{ github.token }}
-          pr-number: ${{ inputs.pr-number }}
-          expected-head-sha: ${{ inputs.expected-head-sha }}
-          expected-default-sha: ${{ inputs.expected-default-sha }}
   hygiene:
-    needs: guard
     runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
@@ -65,7 +41,6 @@ jobs:
           done
       - run: git diff --exit-code HEAD
   website:
-    needs: guard
     runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
@@ -94,7 +69,7 @@ jobs:
           cd site
           /tmp/site-build/bin/zensical build --strict
       - name: Serve and load the built overlay
-        uses: edbfi/automation/actions/smoke@v3.1.0
+        uses: edbfi/automation/actions/smoke@v4.0.0
         with:
           start-command: python3 -m http.server 8765 --bind 127.0.0.1 --directory site/.build
           url: http://127.0.0.1:8765/
@@ -104,20 +79,14 @@ jobs:
   required:
     name: ci / required
     if: always()
-    needs: [guard, hygiene, website]
+    needs: [hygiene, website]
     runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
-      - uses: edbfi/automation/actions/dispatch-guard@v3.1.0
-        with:
-          token: ${{ github.token }}
-          pr-number: ${{ inputs.pr-number }}
-          expected-head-sha: ${{ inputs.expected-head-sha }}
-          expected-default-sha: ${{ inputs.expected-default-sha }}
-      - uses: edbfi/automation/actions/gate@v3.1.0
+      - uses: edbfi/automation/actions/gate@v4.0.0
         with:
           needs: ${{ toJSON(needs) }}
-          required: guard hygiene website
+          required: hygiene website
 defaults:
   run:
     shell: bash
