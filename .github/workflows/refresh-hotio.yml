@@ -1,0 +1,33 @@
+name: Prepare hotio refresh
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        type: choice
+        options: [base-image, website]
+        required: true
+      branch:
+        type: choice
+        options: [workflows, alpinevpn, noblevpn, master]
+        required: true
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Prepare upstream refresh with edbfi customizations
+        env:
+          TARGET: ${{ inputs.target }}
+          BRANCH: ${{ inputs.branch }}
+        run: python3 tools/refresh_upstream.py --target "$TARGET" --branch "$BRANCH" --output evidence
+      - uses: actions/upload-artifact@v7.0.1
+        with:
+          name: hotio-refresh-${{ inputs.target }}-${{ inputs.branch }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
