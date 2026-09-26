@@ -41,7 +41,6 @@ Derived from commits c9652be and f68dd81. Touch all of these together:
 
 - Base-image branches: `TARGETS` in `tools/prepare_sync.py`, the `options` in `.github/workflows/base-image.yml` and the `matrix` in `.github/workflows/watch-hotio-base.yml`.
 - Runner label `ubuntu-26.04`: every `runs-on` and `.github/actionlint.yaml`. Actionlint rejects any label that isn't listed there.
-- `edbfi/automation` version (`v4.0.0`): `ci.yml` (2 uses), `pr-policy.yml` and all three presets in `renovate.json`.
 
 ## Commits
 
@@ -50,4 +49,3 @@ CI (`hygiene` job) checks every commit in the push or PR range. Each subject mus
 ## Reference docs
 
 - `README.md`: preparation semantics, the candidate review/apply/merge procedure and the canonical-documentation rules. Read before changing `prepare_sync.py`, the workflows or the page inventory.
-- `CI.md`: required check names, PR policy and Renovate automerge ownership. Read before editing `.github/workflows/` or `renovate.json`.
