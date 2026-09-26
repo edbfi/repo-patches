@@ -1,4 +1,0 @@
-# Exact hosted runner label validated by this repository's CI.
-self-hosted-runner:
-  labels:
-    - ubuntu-26.04
