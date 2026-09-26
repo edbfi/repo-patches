@@ -12,7 +12,7 @@ python3 tools/prepare_sync.py --target base-image --branch alpinevpn --output /t
 python3 tools/prepare_sync.py --target website --branch master --output /tmp/site-candidate
 ```
 
-Output directories must be empty. Website preparation requires the destination repository and reviewed `.upstream.json` bootstrap; it is staged until those exist. Manual Actions workflows provide the same operations. The watcher prepares all three base branches; it does not dispatch updates or run on a schedule during rollout.
+Output directories must be empty. Website preparation requires the destination repository and reviewed `.upstream.json` bootstrap; it is staged until those exist.
 
 Review `result.json` and `candidate.patch`, verify the destination still equals the recorded base, then apply the patch on a maintainer branch and create a Conventional Commit with your matching Signed-off-by line. The bundle retains the generated candidate for recovery. Open a PR, require complete destination CI, and merge through the maintainer's reviewed ghmerge flow after exact head/base, full diff, author/sign-off, all CI jobs and relevant artifacts are verified. Preserve required-check protection and the PR policy gate. Publishing is a separate manual operation in the image repository.
 
