@@ -14,7 +14,7 @@ Stdlib-only Python tools (`tools/`) that prepare upstream-merge candidates for `
 
 ## Invariants
 
-- Preparation stays read-only: workflows keep `permissions: contents: read` and must not push, dispatch, publish or need a PAT. Their output is `result.json`, `candidate.patch` and `candidate.bundle`, uploaded as an artifact.
+- Preparation stays read-only: it must not push, dispatch, publish or need a PAT. Its output is `result.json`, `candidate.patch` and `candidate.bundle` in the output directory.
 - `.upstream.json` in the destination is the only merge-base source. Don't infer the upstream revision from commit history.
 - The container inventory is the set of `hweb-content/docs/containers/*.md` files (`container_names()` in `tools/site_overlay.py`). Anything upstream that isn't in it, plus `docs/guides/` and `docs/scripts/`, is pruned before merging and again during overlay.
 - `hweb-content/docs/containers/*-tags.json` are never copied into candidates. Tag JSON always comes from the destination repo, and a missing file is created as `{}`. To change published tags, change the destination, not these files.
@@ -35,14 +35,10 @@ Derived from commits c9652be and f68dd81. Touch all of these together:
 6. The expected name set in `tools/test_site_overlay.py`.
 7. The container list and count in `README.md` ("Canonical documentation").
 
-## Values kept in sync by hand
-
-- Base-image branches: `TARGETS` in `tools/prepare_sync.py`, the `options` in `.github/workflows/base-image.yml` and the `matrix` in `.github/workflows/watch-hotio-base.yml`.
-
 ## Commits
 
-CI (`hygiene` job) checks every commit in the push or PR range. Each subject must match `^(feat|fix|chore|docs|test|refactor|perf|build|ci|style|revert)(\(scope\))?!?: ` and the body must have an exact `Signed-off-by: <author name> <email>` line, so commit with `git commit -s`. The job also runs `git diff --exit-code HEAD`, so tests must not leave tracked files modified.
+Each subject must match `^(feat|fix|chore|docs|test|refactor|perf|build|ci|style|revert)(\(scope\))?!?: ` and the body must have an exact `Signed-off-by: <author name> <email>` line, so commit with `git commit -s`. Tests must not leave tracked files modified (`git diff --exit-code HEAD` stays clean).
 
 ## Reference docs
 
-- `README.md`: preparation semantics, the candidate review/apply/merge procedure and the canonical-documentation rules. Read before changing `prepare_sync.py`, the workflows or the page inventory.
+- `README.md`: preparation semantics, the candidate review/apply/merge procedure and the canonical-documentation rules. Read before changing `prepare_sync.py` or the page inventory.
