@@ -42,3 +42,7 @@ Each subject must match `^(feat|fix|chore|docs|test|refactor|perf|build|ci|style
 ## Reference docs
 
 - `README.md`: preparation semantics, the candidate review/apply/merge procedure and the canonical-documentation rules. Read before changing `prepare_sync.py` or the page inventory.
+
+## Full upstream refresh
+
+`tools/refresh_upstream.py` deliberately reconstructs the upstream tree and reapplies explicit edbfi customizations. It is separate from the incremental three-way merge in `prepare_sync.py`. Run it only in its disposable clone or a clean dedicated worktree. Its CLI and manual workflow only produce candidates; neither pushes, publishes nor replaces remote history. Preserve destination website tag JSON, including empty defaults when a tag file is absent. Keep hotio's container build and smoke-test behavior; do not introduce application CI into the generated container repositories.
