@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Starts sync-hotio.yml for the mirror branches that need it: new non-bot
+# commits on Hotio's branch, a mirror branch that is not Hotio's commit plus
+# our one sync commit (and bot commits), or changed adaptations in this repo.
+# Hotio's bot commits (packages.txt, meta.json, tags) need no sync: the
+# mirrors' own call-update keeps those current.
+name: Watch Hotio
+on:
+  schedule:
+    - cron: '37 */6 * * *'
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: watch-hotio
+  cancel-in-progress: false
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: write # starts sync-hotio.yml
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Find mirror branches that need a sync
+        id: watch
+        run: python3 tools/mirror.py watch --github-output "$GITHUB_OUTPUT"
+      - name: Start the sync
+        if: steps.watch.outputs.branches != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCHES: ${{ steps.watch.outputs.branches }}
+          HAS_PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN != '' }}
+        run: |
+          if [ "$HAS_PERSONAL_TOKEN" != "true" ]; then
+            echo "::error::PERSONAL_TOKEN is not set, so the sync of ${BRANCHES} was not started. Add a personal access token with Contents and Workflows read/write on edbfi/base-image and edbfi/website as the Actions secret PERSONAL_TOKEN of edbfi/repo-patches."
+            exit 1
+          fi
+          gh workflow run sync-hotio.yml --repo "$GITHUB_REPOSITORY" -f branches="$BRANCHES"
