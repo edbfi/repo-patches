@@ -1,6 +1,6 @@
 # repo-patches
 
-Keeps `edbfi/base-image` (branches `workflows`, `alpinevpn`, `noblevpn`) and `edbfi/website` (`master`, served at https://web.edb.fi) as generated mirrors of [hotio/base](https://github.com/hotio/base) and [hotio/website](https://github.com/hotio/website). Hotio stays in charge of the design; the difference from him is always exactly one easy-to-read commit. Nobody edits the mirrors by hand or through pull requests: change this repository instead.
+Keeps `edbfi/base-image` (branches `workflows`, `alpinevpn`, `noblevpn`) and `edbfi/website` (`master`, served at https://web.edb.fi) as generated mirrors of [hotio/base](https://github.com/hotio/base) and [hotio/website](https://github.com/hotio/website). Hotio stays in charge of the design; the difference from him is always exactly one easy-to-read commit: every sync makes a branch Hotio's head plus that one commit, and only the mirrors' own bots add commits on top until the next sync. Nobody edits the mirrors by hand or through pull requests: change this repository instead.
 
 ## How a sync works
 
