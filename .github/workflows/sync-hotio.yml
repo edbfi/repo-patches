@@ -1,0 +1,58 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Rebuilds edbfi/base-image (workflows, alpinevpn, noblevpn) and edbfi/website
+# (master) as Hotio's latest commit plus one github-actions[bot] commit with
+# edbfi's adaptations, and force-pushes each changed branch with a lease.
+# Started by watch-hotio.yml, or by hand to force a run (empty branches = all).
+name: Sync Hotio mirrors
+on:
+  workflow_dispatch:
+    inputs:
+      branches:
+        type: string
+        description: Space-separated, empty for all (base-image:workflows base-image:alpinevpn base-image:noblevpn website:master)
+        default: ''
+      dry_run:
+        type: boolean
+        description: Build and compare only; never push
+        default: false
+permissions: {}
+concurrency:
+  group: sync-hotio
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Require PERSONAL_TOKEN
+        if: ${{ !inputs.dry_run }}
+        env:
+          HAS_PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN != '' }}
+        run: |
+          if [ "$HAS_PERSONAL_TOKEN" != "true" ]; then
+            echo "::error::PERSONAL_TOKEN is not set. Add a personal access token with Contents and Workflows read/write on edbfi/base-image and edbfi/website as the Actions secret PERSONAL_TOKEN of edbfi/repo-patches."
+            exit 1
+          fi
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Sync
+        env:
+          BRANCHES: ${{ inputs.branches }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+        run: |
+          args=(sync --branches "$BRANCHES" --evidence evidence)
+          if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+          python3 tools/mirror.py "${args[@]}"
+      - name: Keep the candidate diffs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: hotio-mirror-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: ignore
+          retention-days: 14

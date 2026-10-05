@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Apply canonical documentation in a disposable website candidate."""
+"""Apply the canonical documentation overlay to a website tree."""
 import json
 from pathlib import Path
+import re
 import shutil
 
 OVERLAY_MAPPING = {"config/mkdocs.yml": "mkdocs.yml", "docs/index.md": "docs/index.md",
@@ -10,6 +11,10 @@ OVERLAY_MAPPING = {"config/mkdocs.yml": "mkdocs.yml", "docs/index.md": "docs/ind
                "assets/img/edbfi.svg": "docs/img/edbfi.svg",
                "assets/stylesheets/extra-custom.css": "docs/stylesheets/extra-custom.css"}
 
+# The table body Hotio's `tags` job renders into each container page, matched
+# the way its `sed -z` matches it (from the first opening tag to the last
+# closing tag).
+TAGS_TABLE = re.compile(rb'<tbody id="tags-table-body">.*</tbody>', re.S)
 
 
 def container_names(source):
@@ -33,7 +38,26 @@ def excluded_path(path, names):
     return False
 
 
-def apply_overlay(root, source):
+def container_page(page, published):
+    """The canonical page with the tags table the destination last published."""
+    if published is None:
+        return page
+    table = TAGS_TABLE.search(published)
+    if table is None:
+        return page
+    ours = TAGS_TABLE.search(page)
+    if ours is None:
+        raise ValueError("Canonical container page has no tags table")
+    return page[:ours.start()] + table.group(0) + page[ours.end():]
+
+
+def apply_overlay(root, source, published):
+    """Overlay `source` onto the website tree at `root`.
+
+    `published(path)` returns the destination's current bytes for a
+    repository path, or None. Tag JSON and rendered tags tables come only from
+    there: Hotio's tag data is never kept, and a missing file starts as `{}`.
+    """
     names = container_names(source)
     for required in ("includes/wireguard.md", "includes/annotations.md",
                      "docs/javascripts/tablesort.js", "docs/javascripts/tagcopy.js",
@@ -47,13 +71,15 @@ def apply_overlay(root, source):
     for file in destination.iterdir():
         if file.is_file() and excluded_path(file.relative_to(root), names):
             file.unlink()
-    for name in names:
-        shutil.copy2(source / "docs/containers" / (name + ".md"), destination)
-        tags = destination / (name + "-tags.json")
-        if tags.exists():
-            json.loads(tags.read_text())
-        else:
-            tags.write_text("{}\n")
+    for name in sorted(names):
+        page = (source / "docs/containers" / (name + ".md")).read_bytes()
+        page = container_page(page, published("docs/containers/" + name + ".md"))
+        (destination / (name + ".md")).write_bytes(page)
+        tags = published("docs/containers/" + name + "-tags.json")
+        if tags is None:
+            tags = b"{}\n"
+        json.loads(tags)
+        (destination / (name + "-tags.json")).write_bytes(tags)
     for old, new in OVERLAY_MAPPING.items():
         dest = root / new
         dest.parent.mkdir(parents=True, exist_ok=True)
