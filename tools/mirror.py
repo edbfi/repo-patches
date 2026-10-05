@@ -263,8 +263,8 @@ def sync_branch(repo, target, branch, *, push_changes, env, evidence=None, attem
         if not push_changes:
             return dict(result, status="would push")
         if push(repo, branch, candidate, dest_sha, env):
-            if remote_head(repo, branch, env) != candidate:
-                raise SyncError(f"edbfi/{target} {branch} is not the pushed candidate")
+            # A successful leased push set the branch to the candidate; a bot
+            # may already have added a commit on top, so don't re-read it.
             return dict(result, status="pushed")
         if remote_head(repo, branch, env) == dest_sha:
             raise SyncError(f"push to edbfi/{target} {branch} was rejected")

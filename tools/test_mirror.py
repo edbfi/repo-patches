@@ -282,6 +282,21 @@ class BaseImageTests(MirrorFixture):
         self.assertEqual(results[0]["status"], "pushed")
         self.assertEqual(git(self.dest, "rev-parse", "alpinevpn^"), head(self.hotio, "alpinevpn"))
 
+    def test_bot_commit_right_after_the_push_is_not_a_failure(self):
+        original = mirror.push
+
+        def push_then_bot(repo, branch, candidate, dest_sha, env):
+            pushed = original(repo, branch, candidate, dest_sha, env)
+            commit(self.dest, branch, {"packages.txt": b"a=4\n"}, "Modified: packages.txt [skip ci]", BOT)
+            return pushed
+
+        with mock.patch.object(mirror, "push", push_then_bot):
+            results, failed = self.sync("base-image:alpinevpn base-image:noblevpn")
+        self.assertFalse(failed)
+        self.assertEqual([r["status"] for r in results], ["pushed", "pushed"])
+        for branch in ("alpinevpn", "noblevpn"):
+            self.assertEqual(git(self.dest, "rev-parse", f"{branch}^^"), head(self.hotio, branch))
+
     def test_destination_that_keeps_moving_gives_up(self):
         def always_racing(repo, branch, candidate, dest_sha, env):
             commit(self.dest, branch, {"packages.txt": os.urandom(8).hex().encode()}, "Modified", BOT)
