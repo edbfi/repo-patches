@@ -457,9 +457,12 @@ class SummaryTests(MirrorFixture):
 
 class CommandTests(MirrorFixture):
     def run_main(self, *args):
+        with contextlib.redirect_stdout(io.StringIO()):
+            return self.run_main_keep_stdout(*args)
+
+    def run_main_keep_stdout(self, *args):
         stderr = io.StringIO()
-        with mock.patch.dict(os.environ), contextlib.redirect_stderr(stderr), \
-                contextlib.redirect_stdout(io.StringIO()):
+        with mock.patch.dict(os.environ), contextlib.redirect_stderr(stderr):
             os.environ.pop("PERSONAL_TOKEN", None)
             code = mirror.main([*args, "--workdir", str(self.work), "--github", str(self.github)])
         return code, stderr.getvalue()
@@ -483,6 +486,17 @@ class CommandTests(MirrorFixture):
         text = summary.read_text()
         self.assertTrue(text.startswith("earlier step\n## Hotio mirror sync (dry run)\n"))
         self.assertIn("### edbfi/base-image noblevpn: would push\n", text)
+
+    def test_unwritable_summary_does_not_fail_the_sync(self):
+        summary = Path(self.temp.name) / "summary-is-a-folder"
+        summary.mkdir()
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            code, err = self.run_main_keep_stdout("sync", "--dry-run", "--branches", "base-image:noblevpn",
+                                                  "--summary", str(summary))
+        self.assertEqual(code, 0)
+        self.assertIn("::warning::cannot write the run summary", err)
+        self.assertIn('"status": "would push"', stdout.getvalue())
 
     def test_unknown_selection_rejected(self):
         code, err = self.run_main("sync", "--dry-run", "--branches", "base-image:workflows; rm -rf /")

@@ -471,12 +471,16 @@ def main(argv=None):
             evidence = opts.evidence or (Path(temp) / "evidence" if opts.summary else None)
             results, failed = run_sync(selection, workdir, push_changes=not opts.dry_run, token=token,
                                        github=opts.github, evidence=evidence)
+            print(json.dumps(results, indent=2), flush=True)
             if opts.summary:
-                write_summary(opts.summary, results, evidence, dry_run=opts.dry_run)
+                # The pushes are done: a report that cannot be written must not fail the run.
+                try:
+                    write_summary(opts.summary, results, evidence, dry_run=opts.dry_run)
+                except (OSError, UnicodeError) as error:
+                    log(f"::warning::cannot write the run summary: {error}")
         except SyncError as error:
             log(f"::error::{error}")
             return 1
-    print(json.dumps(results, indent=2))
     return 1 if failed else 0
 
 
