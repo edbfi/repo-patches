@@ -38,7 +38,7 @@ class PrivilegedJobTests(unittest.TestCase):
         text = workflow("watch-hotio.yml")
         self.assertIsNone(SECRET.search(text))
         self.assertIn(f"if: {MAIN_ONLY}", text)
-        self.assertIn("gh workflow run sync-hotio.yml", text)
+        self.assertIn('gh workflow run sync-hotio.yml --repo "$GITHUB_REPOSITORY" --ref main', text)
 
     def test_sync_runs_this_repository_at_the_triggering_commit(self):
         text = workflow("sync-hotio.yml")
