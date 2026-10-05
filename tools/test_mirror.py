@@ -13,7 +13,6 @@ from mirror import BOT_EMAIL, BOT_NAME
 
 HUMAN = ("Hotio", "hotio@example.com")
 BOT = (BOT_NAME, BOT_EMAIL)
-NO_TOKEN = {"GIT_TERMINAL_PROMPT": "0"}
 
 CALL_BUILD = b"""name: call-build
 on:
