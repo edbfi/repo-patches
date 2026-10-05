@@ -18,6 +18,7 @@ The push uses the Actions secret `PERSONAL_TOKEN`, so it triggers the mirrors' o
 ## Workflows
 
 - **Watch Hotio** (`watch-hotio.yml`): every 6 hours at minute 37, or by hand. Starts **Sync Hotio mirrors** for the branches `watch` lists. It fails with a clear error instead when `PERSONAL_TOKEN` is not set.
+  GitHub disables the schedule of a public repository after 60 days without activity in it, and the watcher commits nothing here; the mirrors then stop following Hotio. Check that the watcher still runs (`gh run list -R edbfi/repo-patches -w watch-hotio.yml`) and re-enable it with `gh workflow enable watch-hotio.yml -R edbfi/repo-patches`.
 - **Sync Hotio mirrors** (`sync-hotio.yml`): run by the watcher, or by hand to force a sync. Input `branches` is a space-separated subset of `base-image:workflows base-image:alpinevpn base-image:noblevpn website:master` (empty means all four); `dry_run` builds and compares without pushing. Each run keeps the candidate diffs as an artifact for 14 days. It fails with a clear error when `PERSONAL_TOKEN` is not set.
 
 `PERSONAL_TOKEN` is a personal access token with Contents and Workflows read/write on `edbfi/base-image` and `edbfi/website` (the generated commits change workflow files). The mirrors also need their own secrets: `PERSONAL_TOKEN` (Hotio's `update-on-call` and website tag writer) and `DISCORD_WEBHOOK` (Hotio's `notify` job) in `edbfi/base-image`.
