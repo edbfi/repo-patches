@@ -417,11 +417,52 @@ class WatchTests(MirrorFixture):
         self.assertEqual(self.watch().count("base-image:alpinevpn"), 0)
 
 
+class SummaryTests(MirrorFixture):
+    def summary(self, results, evidence, budget=mirror.SUMMARY_BUDGET):
+        path = Path(self.temp.name) / "summary.md"
+        mirror.write_summary(path, results, evidence, dry_run=True, budget=budget)
+        return path.read_text()
+
+    def test_summary_shows_every_branch_within_the_budget(self):
+        evidence = Path(self.temp.name) / "evidence"
+        results, failed = self.sync(push=False, evidence=evidence)
+        self.assertFalse(failed)
+        sizes = {f"{r['target'].split('/')[1]}-{r['branch']}": sum(
+            len((evidence / f"{r['target'].split('/')[1]}-{r['branch']}{suffix}").read_bytes())
+            for suffix in (".log", ".stat", ".diff")) for r in results}
+        largest = max(sizes, key=sizes.get)
+        budget = sum(sizes.values()) - sizes[largest] + sizes[largest] // 2
+        text = self.summary(results, evidence, budget)
+        self.assertTrue(text.startswith("## Hotio mirror sync (dry run)\n"))
+        for item in mirror.ALL:
+            self.assertIn(f"### edbfi/{item.replace(':', ' ')}: would push\n", text)
+        self.assertIn('+$(figlet "edbfi")', text)  # small reports are shown whole
+        self.assertEqual(text.count("Cut to "), 1)
+        self.assertIn(f"of {sizes[largest]} bytes. For the whole diff, run", text)
+        self.assertLessEqual(len(text.encode()), budget + 4096)
+
+    def test_summary_shows_the_error_of_a_failed_branch(self):
+        commit(self.hotio, "alpinevpn", {"root/etc/s6-overlay/s6-rc.d/init-setup/run": b"#!/bin/sh\n"})
+        evidence = Path(self.temp.name) / "evidence"
+        results, failed = self.sync("base-image:alpinevpn", push=False, evidence=evidence)
+        self.assertTrue(failed)
+        text = self.summary(results, evidence)
+        self.assertIn("### edbfi/base-image alpinevpn: failed\n", text)
+        self.assertIn("Hotio layout changed", text)
+
+    def test_code_block_fence_outlasts_backticks_in_the_text(self):
+        self.assertEqual(mirror.code_block("+```yaml\n+````\n", "diff"), "`````diff\n+```yaml\n+````\n`````\n")
+        self.assertEqual(mirror.code_block("plain"), "```\nplain\n```\n")
+
+
 class CommandTests(MirrorFixture):
     def run_main(self, *args):
+        with contextlib.redirect_stdout(io.StringIO()):
+            return self.run_main_keep_stdout(*args)
+
+    def run_main_keep_stdout(self, *args):
         stderr = io.StringIO()
-        with mock.patch.dict(os.environ), contextlib.redirect_stderr(stderr), \
-                contextlib.redirect_stdout(io.StringIO()):
+        with mock.patch.dict(os.environ), contextlib.redirect_stderr(stderr):
             os.environ.pop("PERSONAL_TOKEN", None)
             code = mirror.main([*args, "--workdir", str(self.work), "--github", str(self.github)])
         return code, stderr.getvalue()
@@ -436,6 +477,26 @@ class CommandTests(MirrorFixture):
     def test_dry_run_needs_no_token(self):
         code, _ = self.run_main("sync", "--dry-run")
         self.assertEqual(code, 0)
+
+    def test_summary_needs_no_evidence_folder(self):
+        summary = Path(self.temp.name) / "summary.md"
+        summary.write_text("earlier step\n")
+        code, _ = self.run_main("sync", "--dry-run", "--branches", "base-image:noblevpn", "--summary", str(summary))
+        self.assertEqual(code, 0)
+        text = summary.read_text()
+        self.assertTrue(text.startswith("earlier step\n## Hotio mirror sync (dry run)\n"))
+        self.assertIn("### edbfi/base-image noblevpn: would push\n", text)
+
+    def test_unwritable_summary_does_not_fail_the_sync(self):
+        summary = Path(self.temp.name) / "summary-is-a-folder"
+        summary.mkdir()
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            code, err = self.run_main_keep_stdout("sync", "--dry-run", "--branches", "base-image:noblevpn",
+                                                  "--summary", str(summary))
+        self.assertEqual(code, 0)
+        self.assertIn("::warning::cannot write the run summary", err)
+        self.assertIn('"status": "would push"', stdout.getvalue())
 
     def test_unknown_selection_rejected(self):
         code, err = self.run_main("sync", "--dry-run", "--branches", "base-image:workflows; rm -rf /")

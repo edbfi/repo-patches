@@ -10,11 +10,12 @@ Stdlib-only Python tools (`tools/`) and two workflows that keep `edbfi/base-imag
 - One file: `python3 -m unittest discover -s tools -p 'test_mirror.py'`
 - One case: `cd tools && python3 -m unittest test_mirror.WatchTests.test_watch_lifecycle`
 - Tests import modules by bare name (`from site_overlay import ...`), so `python3 -m unittest tools.test_mirror` from the root fails with an import error; use `discover -s tools` or run from `tools/`.
-- Tests run against local bare repositories standing in for GitHub (`MirrorFixture` in `tools/test_mirror.py`, `--github <folder>` on the CLI). `python3 tools/mirror.py watch` and `sync --dry-run --evidence <dir>` read the real public repositories and never push.
+- Tests run against local bare repositories standing in for GitHub (`MirrorFixture` in `tools/test_mirror.py`, `--github <folder>` on the CLI). `python3 tools/mirror.py watch` and `sync --dry-run --evidence <dir>` read the real public repositories and never push. `sync --summary <file>` appends the size-bounded Markdown report the workflow writes to its run summary.
 
 ## Invariants
 
 - Only `sync-hotio.yml` (via `tools/mirror.py sync` without `--dry-run`) pushes, and only to `edbfi/base-image` and `edbfi/website`, with the `PERSONAL_TOKEN` secret. Never push to the mirrors from anywhere else, and never edit them by hand or through PRs: every change goes into this repository and reaches them through a sync.
+- `sync-hotio.yml` holds `PERSONAL_TOKEN`, so it follows edbfi-ci's privileged-job rule (`design/security.md`): one job of inline shell and preinstalled tools, no `uses:`, `container:`, `services:` or caches, this repository fetched with plain `git` at `$GITHUB_SHA` (never with a credential in `.git/config`), and `if: github.ref == 'refs/heads/main'`. Evidence goes to the run summary, never an artifact. `watch-hotio.yml` references no secret, because it uses `actions/checkout`. `tools/test_workflows.py` checks both; edbfi-ci's `privileged-jobs` hook is the full check.
 - A pushed branch is exactly Hotio's head plus one commit, authored and committed by `github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>`, whose message carries `Upstream: <hotio repo>@<sha>`. `verify_candidate()` enforces this before every push, and `watch` finds the last sync through it and the merge base. Don't add a second commit or a recorded-revision file.
 - Every push is a lease on the mirror head the candidate was built from. A lease failure means a bot wrote meanwhile: fetch, rebuild, retry. Never force-push without the lease; it would drop newer tag data or bot commits.
 - Skip the push when the candidate's tree equals the mirror's current tree.

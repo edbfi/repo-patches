@@ -13,6 +13,7 @@ import base64
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -66,6 +67,11 @@ IMAGE_EDITS = (
 BASE_IMAGE_FORBIDDEN = (b"hotio/base/.github/workflows/", b"raw.githubusercontent.com/hotio/",
                         b"ghcr.io/hotio/", b"hotio.dev/containers", b"hotio.dev/discord",
                         b'figlet "hotio"')
+
+
+# Bytes of commit logs, file lists and diffs a run summary may hold in total;
+# GitHub keeps at most 1 MiB of summary per step.
+SUMMARY_BUDGET = 768 * 1024
 
 
 class SyncError(RuntimeError):
@@ -278,8 +284,57 @@ def write_evidence(repo, folder, target, branch, hotio_sha, candidate):
     folder.mkdir(parents=True, exist_ok=True)
     stem = folder / f"{target}-{branch}"
     stem.with_suffix(".diff").write_bytes(git(repo, "diff", hotio_sha, candidate).stdout)
+    stem.with_suffix(".stat").write_bytes(git(repo, "diff", "--stat=200", hotio_sha, candidate).stdout)
     stem.with_suffix(".log").write_bytes(git(
         repo, "log", "--format=%H %P%n  %an <%ae> | %cn <%ce>%n  %s", "-n", "3", candidate).stdout)
+
+
+def code_block(text, language=""):
+    """A Markdown fence longer than any backtick run in `text`."""
+    fence = "`" * max(3, 1 + max((len(run) for run in re.findall(r"`+", text)), default=0))
+    body = text.rstrip("\n")
+    return f"{fence}{language}\n{body}\n{fence}\n"
+
+
+def write_summary(path, results, evidence, *, dry_run, budget=SUMMARY_BUDGET):
+    """Append a Markdown report of `results` to `path` (the run summary).
+
+    Each candidate's commits, changed files and diff against Hotio share
+    `budget` bytes: small reports are shown whole, the largest is cut at a
+    line boundary. Failed branches show their error instead.
+    """
+    reports = {}
+    for number, result in enumerate(results):
+        if "candidate" in result:
+            stem = evidence / f"{result['target'].split('/')[1]}-{result['branch']}"
+            raw = b"".join(stem.with_suffix(suffix).read_bytes() for suffix in (".log", ".stat", ".diff"))
+            reports[number] = raw.decode(errors="replace").encode()
+    share, left = {}, budget
+    for index, number in enumerate(sorted(reports, key=lambda number: len(reports[number]))):
+        share[number] = min(len(reports[number]), left // (len(reports) - index))
+        left -= share[number]
+    parts = [f"## Hotio mirror sync{' (dry run)' if dry_run else ''}\n"]
+    for number, result in enumerate(results):
+        parts.append(f"### {result['target']} {result['branch']}: {result['status']}\n")
+        if "candidate" not in result:
+            parts.append(code_block(result.get("error", "")[:4000], "text"))
+            continue
+        parts.append(f"Hotio `{result['hotio']}`, destination before `{result['destination'] or 'none'}`, "
+                     f"candidate `{result['candidate']}`.\n")
+        report = reports[number]
+        shown = report[:share[number]]
+        if len(shown) < len(report):
+            shown = shown[:shown.rfind(b"\n") + 1]
+        parts.append(f"<details><summary>Commits, changed files and diff against Hotio "
+                     f"({len(report)} bytes)</summary>\n")
+        parts.append(code_block(shown.decode(), "diff"))
+        if len(shown) < len(report):
+            parts.append(f"Cut to {len(shown)} of {len(report)} bytes. For the whole diff, run "
+                         f"`python3 tools/mirror.py sync --dry-run --branches {result['target'].split('/')[1]}"
+                         f":{result['branch']} --evidence <folder>`.\n")
+        parts.append("</details>\n")
+    with path.open("a") as handle:
+        handle.write("\n".join(parts))
 
 
 def needs_sync(repo, target, branch, env):
@@ -391,7 +446,8 @@ def main(argv=None):
     sync = sub.add_parser("sync", help="rebuild and push the selected branches")
     sync.add_argument("--branches", default="", help="space-separated; empty means all: " + " ".join(ALL))
     sync.add_argument("--dry-run", action="store_true", help="build and compare, never push")
-    sync.add_argument("--evidence", type=Path, help="write each candidate's diff and log here")
+    sync.add_argument("--evidence", type=Path, help="write each candidate's diff, changed files and log here")
+    sync.add_argument("--summary", type=Path, help="append a Markdown report to this file (size-bounded)")
     for command in (watch, sync):
         command.add_argument("--workdir", type=Path, help="reuse this folder for the local clones")
         command.add_argument("--github", default="https://github.com", help=argparse.SUPPRESS)
@@ -412,12 +468,19 @@ def main(argv=None):
                 raise SyncError("PERSONAL_TOKEN is not set. Add a personal access token with Contents and "
                                 "Workflows read/write on edbfi/base-image and edbfi/website as the "
                                 "Actions secret PERSONAL_TOKEN of edbfi/repo-patches.")
+            evidence = opts.evidence or (Path(temp) / "evidence" if opts.summary else None)
             results, failed = run_sync(selection, workdir, push_changes=not opts.dry_run, token=token,
-                                       github=opts.github, evidence=opts.evidence)
+                                       github=opts.github, evidence=evidence)
+            print(json.dumps(results, indent=2), flush=True)
+            if opts.summary:
+                # The pushes are done: a report that cannot be written must not fail the run.
+                try:
+                    write_summary(opts.summary, results, evidence, dry_run=opts.dry_run)
+                except (OSError, UnicodeError) as error:
+                    log(f"::warning::cannot write the run summary: {error}")
         except SyncError as error:
             log(f"::error::{error}")
             return 1
-    print(json.dumps(results, indent=2))
     return 1 if failed else 0
 
 
