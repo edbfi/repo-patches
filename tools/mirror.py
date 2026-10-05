@@ -222,6 +222,8 @@ def verify_candidate(repo, target, hotio_sha, dest_sha, commit):
         for needle in BASE_IMAGE_FORBIDDEN:
             args += ["-e", needle.decode()]
         found = git(repo, *args, commit, check=False)
+        if found.returncode > 1:
+            raise SyncError("cannot scan the candidate: " + found.stderr.decode(errors="replace").strip())
         if found.returncode == 0:
             raise SyncError("candidate still points at Hotio: " + found.stdout.decode().strip())
     else:
