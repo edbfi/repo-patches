@@ -1,42 +1,56 @@
-# Repository update candidates
+# repo-patches
 
-Prepare reviewed upstream updates for `edbfi/base-image` and the documentation site at `web.edb.fi`. Every run works in a disposable clone and retains a patch, recovery bundle and revision report. Preparation never pushes branches, bypasses protection, publishes images or sends messages. No personal access token is required.
+Keeps `edbfi/base-image` (branches `workflows`, `alpinevpn`, `noblevpn`) and `edbfi/website` (`master`, served at https://web.edb.fi) as generated mirrors of [hotio/base](https://github.com/hotio/base) and [hotio/website](https://github.com/hotio/website). Hotio stays in charge of the design; the difference from him is always exactly one easy-to-read commit. Nobody edits the mirrors by hand or through pull requests: change this repository instead.
 
-`tools/prepare_sync.py` merges upstream changes using the exact `.upstream.json` revision recorded in the destination. It preserves destination changes and stops on conflicts or invalid provenance. For website updates, the canonical container inventory filters excluded pages, tags, logos, guides and scripts from all three merge inputs first. Upstream edits to intentionally excluded content therefore cannot restore it or block preparation. Canonical pages, navigation and branding are applied to all three inputs, and retained image-tag JSON comes only from the destination. Hotio tag updates cannot overwrite edbfi publication data. Conflicts in shared inherited content still stop for review. Website candidates additionally apply the canonical `hweb-content/` overlay, retaining tag data for supported containers and inherited runtime assets. The original GPL/AGPL licenses and upstream attribution remain applicable.
+## How a sync works
 
-## Run locally
+`tools/mirror.py sync` does this per branch, `workflows` before the image branches:
 
-```sh
-python3 -m unittest discover -s tools -p 'test_*.py'
-python3 tools/prepare_sync.py --target base-image --branch alpinevpn --output /tmp/base-candidate
-python3 tools/prepare_sync.py --target website --branch master --output /tmp/site-candidate
-```
+1. Fetch Hotio's branch head and the mirror's current head.
+2. Check out Hotio's head, apply edbfi's adaptations (below) and commit them once, authored and committed by `github-actions[bot]`. The commit's only parent is Hotio's head, and its message records it (`Upstream: hotio/base@<sha>`).
+3. If the result's tree equals the mirror's current tree, stop: nothing is pushed.
+4. Otherwise force-push it with a lease on the mirror head read in step 1. If the mirror moved meanwhile (a bot commit), fetch again and rebuild, up to five times.
 
-Output directories must be empty. Website preparation requires the destination repository and reviewed `.upstream.json` bootstrap; it is staged until those exist.
+The push uses the Actions secret `PERSONAL_TOKEN`, so it triggers the mirrors' own workflows: on `alpinevpn` and `noblevpn`, base-image's `call-build` publishes `ghcr.io/edbfi/base-image:<branch>-<sha7>` and writes `base-image-tags.json` to the website, and every docker repo's hourly `call-update` then picks the new base up through `upstream_tag_sha__command`. On the website, Hotio's Pages workflow deploys. After a sync those workflows add their own bot commits (`packages.txt`, `meta.json`, "Update Tags for [...]") on top of the sync commit; the next sync replaces them all.
 
-Review `result.json` and `candidate.patch`, verify the destination still equals the recorded base, then apply the patch on a maintainer branch and create a Conventional Commit with your matching Signed-off-by line. The bundle retains the generated candidate for recovery. Open a PR, run the destination's local checks, and merge through the maintainer's reviewed ghmerge flow after exact head/base, full diff and author/sign-off are verified. Publishing is a separate manual operation in the image repository.
+`tools/mirror.py watch` decides which branches need a sync: Hotio has non-bot commits since the mirror's base (the merge base of the two branches), the mirror is not Hotio's commit plus one sync commit and bot commits (hand edits, or no sync yet), or rebuilding the last sync with today's adaptations gives a different tree. Hotio's own bot commits need no sync, because the mirrors' `call-update` keeps `packages.txt` and `meta.json` current by itself.
+
+## Workflows
+
+- **Watch Hotio** (`watch-hotio.yml`): every 6 hours at minute 37, or by hand. Starts **Sync Hotio mirrors** for the branches `watch` lists. It fails with a clear error instead when `PERSONAL_TOKEN` is not set.
+- **Sync Hotio mirrors** (`sync-hotio.yml`): run by the watcher, or by hand to force a sync. Input `branches` is a space-separated subset of `base-image:workflows base-image:alpinevpn base-image:noblevpn website:master` (empty means all four); `dry_run` builds and compares without pushing. Each run keeps the candidate diffs as an artifact for 14 days. It fails with a clear error when `PERSONAL_TOKEN` is not set.
+
+`PERSONAL_TOKEN` is a personal access token with Contents and Workflows read/write on `edbfi/base-image` and `edbfi/website` (the generated commits change workflow files). The mirrors also need their own secrets: `PERSONAL_TOKEN` (Hotio's `update-on-call` and website tag writer) and `DISCORD_WEBHOOK` (Hotio's `notify` job) in `edbfi/base-image`.
+
+To force a sync: `gh workflow run sync-hotio.yml -R edbfi/repo-patches` (all four branches), or with `-f branches="base-image:alpinevpn"` or `-f dry_run=true`.
+
+## The adaptations
+
+base-image, all branches: the callers' `uses:` point at `edbfi/base-image/.github/workflows/{build,update}-on-call.yml@workflows`; `renovate.json` is removed; [mirrors/base-image/README.md](mirrors/base-image/README.md) is added.
+
+- `workflows`: `build-on-call.yml` links documentation at `https://web.edb.fi/containers/`; `maintenance.yml` fetches from `raw.githubusercontent.com/edbfi/base-image/`; the Pullfrog workflow (this repository's `.github/workflows/pullfrog.yml`) is added. Hotio's `notify` job and `maintenance.yml` stay, and no `permissions` blocks are added (base-image's default workflow token is `write`, as on Hotio's account).
+- `alpinevpn`, `noblevpn`: the startup banner in `root/etc/s6-overlay/s6-rc.d/init-setup/run` shows `edbfi`, Hotio's donation link as `Upstream`, the documentation at `web.edb.fi` and the image repository's GitHub issues for support. The runtime user `hotio` stays.
+
+website: the `hweb-content/` overlay (below), the pruning of everything outside the container inventory, the tag data read from the mirror, `renovate.json` removed, [mirrors/website/README.md](mirrors/website/README.md) and the Pullfrog workflow added. Hotio's Pages workflow stays as it is.
+
+Each edit must find Hotio's text, and a base-image candidate must not still point builds, images, documentation or support at Hotio; otherwise the sync stops before pushing. Update the edit in `tools/mirror.py` when Hotio changes those lines.
 
 ## Canonical documentation
 
 Eight container pages are retained: base-image, caddy, obzorarr, otpravkarr, qbittorrent, qflood, sabnzbd and zondarr. The pages describe the intended image namespace; availability depends on each image's migration and publication. Navigation and index links must match the page inventory. Source logos include upstream credits in the site footer. Internal `e74-*` CSS selectors remain for compatibility.
 
-The overlay maps config/mkdocs.yml to the website root, docs content into docs/, docs/overrides/main.html to overrides/main.html, and assets into docs/img and docs/stylesheets. Required upstream includes, JavaScript and extra-13.css remain inherited. Existing tag JSON is preserved for every retained container; missing data starts as an empty object. Unrelated upstream guides/scripts and container pages/logos are excluded from the assembled candidate.
+The overlay maps config/mkdocs.yml to the website root, docs content into docs/, docs/overrides/main.html to overrides/main.html, and assets into docs/img and docs/stylesheets. Required upstream includes, JavaScript and extra-13.css remain inherited. Each retained container's tag data comes from the mirror as published: its `docs/containers/<name>-tags.json` (an empty object when missing) and the tags table Hotio's tag writer renders into its page. Hotio's tag data is never kept. Unrelated upstream guides/scripts and container pages/logos are excluded.
 
-## Refresh upstream files and inherited CI
-
-Use a full refresh when the destination has drifted from hotio's design:
+## Run locally
 
 ```sh
-python3 tools/refresh_upstream.py --target base-image --branch workflows --output /tmp/base-workflows-refresh
-python3 tools/refresh_upstream.py --target base-image --branch alpinevpn --output /tmp/base-alpine-refresh
-python3 tools/refresh_upstream.py --target base-image --branch noblevpn --output /tmp/base-noble-refresh
-python3 tools/refresh_upstream.py --target website --branch master --output /tmp/website-refresh
+python3 -m unittest discover -s tools -p 'test_*.py'
+python3 tools/mirror.py watch
+python3 tools/mirror.py sync --dry-run --evidence /tmp/mirror-evidence
 ```
 
-The manual **Prepare hotio refresh** workflow runs the same command and retains the artifacts. It does not push or publish. Review and apply each candidate through a PR against its recorded destination branch, updating `workflows` before the image branches. This recreates the upstream file tree, not the branch history. Destination changes outside the explicit customizations are removed, unlike the incremental merge performed by `prepare_sync.py`.
+`watch` and `sync --dry-run` only read the public repositories. Without `--dry-run`, `sync` pushes and needs `PERSONAL_TOKEN`.
 
-Base-image retains edbfi startup branding, workflow references and documentation URLs, with explicit write permissions for hotio's publishing flow. Hotio's build, update and smoke-test design is retained. Retired Renovate, account-wide maintenance and Discord notifications are excluded. The README is retained; obsolete replacement CI and its helper tools are removed.
+## License
 
-Website retains the canonical overlay, destination tag JSON, README, overlay license, pinned requirements and site validation tool. Its Pages workflow comes from upstream and installs the existing requirements. Missing destination tag data starts empty; upstream publication data is never imported.
-
-Configure `PERSONAL_TOKEN` and appropriate branch-write access separately for hotio's metadata updates and website tag writer. The refresh preparation itself needs neither credentials nor repository write access.
+[AGPL-3.0-only](LICENSE). The mirrors keep Hotio's GPL-3.0 licence and attribution.
