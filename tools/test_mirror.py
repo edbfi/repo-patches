@@ -1,7 +1,6 @@
 import base64
 import contextlib
 import io
-import json
 import os
 from pathlib import Path
 import subprocess
@@ -10,7 +9,7 @@ import unittest
 from unittest import mock
 
 import mirror
-from mirror import BOT_EMAIL, BOT_NAME, SyncError
+from mirror import BOT_EMAIL, BOT_NAME
 
 HUMAN = ("Hotio", "hotio@example.com")
 BOT = (BOT_NAME, BOT_EMAIL)
