@@ -1,3 +1,4 @@
+import base64
 import contextlib
 import io
 import json
@@ -454,9 +455,41 @@ class CommandTests(MirrorFixture):
         self.assertEqual(output.read_text(), "branches=" + " ".join(mirror.ALL) + "\n")
 
     def test_token_only_reaches_git_through_the_environment(self):
-        env = mirror.git_env("secret-value")
+        token = "secret-value"
+        basic = base64.b64encode(b"x-access-token:" + token.encode()).decode()
+        env = mirror.git_env(token)
         self.assertEqual(env["GIT_CONFIG_KEY_0"], "http.https://github.com/.extraheader")
-        self.assertNotIn("secret-value", json.dumps(env))
+        self.assertEqual(env["GIT_CONFIG_VALUE_0"], "AUTHORIZATION: basic " + basic)
+        argvs = []
+        real_run = subprocess.run
+
+        def recording_run(args, *rest, **kwargs):
+            argvs.append(list(args))
+            return real_run(args, *rest, **kwargs)
+
+        with mock.patch.object(mirror.subprocess, "run", recording_run), \
+                contextlib.redirect_stderr(io.StringIO()):
+            results, failed = mirror.run_sync(list(mirror.ALL), self.work, push_changes=True, token=token,
+                                              github=str(self.github))
+        self.assertFalse(failed)
+        self.assertIn("push", {arg for argv in argvs for arg in argv})
+        for argv in argvs:
+            self.assertFalse(any(token in arg or basic in arg for arg in argv), argv)
+
+    def test_failed_scan_stops_the_sync(self):
+        real_git = mirror.git
+
+        def failing_grep(cwd, *args, **kwargs):
+            if args[0] == "grep":
+                return subprocess.CompletedProcess(args, 128, b"", b"fatal: bad object")
+            return real_git(cwd, *args, **kwargs)
+
+        before = head(self.dest, "alpinevpn")
+        with mock.patch.object(mirror, "git", failing_grep):
+            results, failed = self.sync("base-image:alpinevpn")
+        self.assertTrue(failed)
+        self.assertIn("cannot scan the candidate", results[0]["error"])
+        self.assertEqual(head(self.dest, "alpinevpn"), before)
 
 
 if __name__ == "__main__":
