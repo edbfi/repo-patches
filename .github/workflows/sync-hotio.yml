@@ -3,6 +3,9 @@
 # (master) as Hotio's latest commit plus one github-actions[bot] commit with
 # edbfi's adaptations, and force-pushes each changed branch with a lease.
 # Started by watch-hotio.yml, or by hand to force a run (empty branches = all).
+# The job holds PERSONAL_TOKEN, so it follows edbfi-ci's privileged-job rule
+# (design/security.md): inline shell and preinstalled tools only (no actions,
+# containers, services or caches), and only on main.
 name: Sync Hotio mirrors
 on:
   workflow_dispatch:
@@ -21,10 +24,12 @@ concurrency:
   cancel-in-progress: false
 jobs:
   sync:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    permissions:
-      contents: read
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Require PERSONAL_TOKEN
         if: ${{ !inputs.dry_run }}
@@ -35,24 +40,21 @@ jobs:
             echo "::error::PERSONAL_TOKEN is not set. Add a personal access token with Contents and Workflows read/write on edbfi/base-image and edbfi/website as the Actions secret PERSONAL_TOKEN of edbfi/repo-patches."
             exit 1
           fi
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
+      # This repository is public: an anonymous fetch of the triggering commit
+      # needs no credential, and nothing is written to .git/config.
+      - name: Fetch this repository at the triggering commit
+        run: |
+          git init --quiet .
+          git fetch --quiet --depth 1 --no-tags "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$GITHUB_SHA"
+          git checkout --quiet --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
       - name: Sync
         env:
           BRANCHES: ${{ inputs.branches }}
           DRY_RUN: ${{ inputs.dry_run }}
-          PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+          # A dry run only reads public repositories; it never gets the token.
+          PERSONAL_TOKEN: ${{ !inputs.dry_run && secrets.PERSONAL_TOKEN || '' }}
         run: |
-          args=(sync --branches "$BRANCHES" --evidence evidence)
+          args=(sync --branches "$BRANCHES" --summary "$GITHUB_STEP_SUMMARY")
           if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi
           python3 tools/mirror.py "${args[@]}"
-      - name: Keep the candidate diffs
-        if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: hotio-mirror-${{ github.run_id }}
-          path: evidence/
-          if-no-files-found: ignore
-          retention-days: 14

@@ -4,6 +4,8 @@
 # our one sync commit (and bot commits), or changed adaptations in this repo.
 # Hotio's bot commits (packages.txt, meta.json, tags) need no sync: the
 # mirrors' own call-update keeps those current.
+# This job holds no secret (edbfi-ci design/security.md), so it may use
+# actions; sync-hotio.yml checks PERSONAL_TOKEN and fails clearly without it.
 name: Watch Hotio
 on:
   schedule:
@@ -15,6 +17,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   watch:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -33,10 +36,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BRANCHES: ${{ steps.watch.outputs.branches }}
-          HAS_PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN != '' }}
-        run: |
-          if [ "$HAS_PERSONAL_TOKEN" != "true" ]; then
-            echo "::error::PERSONAL_TOKEN is not set, so the sync of ${BRANCHES} was not started. Add a personal access token with Contents and Workflows read/write on edbfi/base-image and edbfi/website as the Actions secret PERSONAL_TOKEN of edbfi/repo-patches."
-            exit 1
-          fi
-          gh workflow run sync-hotio.yml --repo "$GITHUB_REPOSITORY" -f branches="$BRANCHES"
+        run: gh workflow run sync-hotio.yml --repo "$GITHUB_REPOSITORY" --ref main -f branches="$BRANCHES"
