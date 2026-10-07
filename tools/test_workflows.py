@@ -43,7 +43,10 @@ class PrivilegedJobTests(unittest.TestCase):
         self.assertIn(f"if: {DEFAULT_BRANCH_ONLY}", text)
         self.assertIn("GITHUB_TOKEN: ${{ secrets.IMMORTALITY_TOKEN }}", text)
         self.assertIn("REPOS: ${{ github.repository }}", text)
-        self.assertIn('sha256sum -c -', text)
+        # The script is pinned to a commit and checked against a pinned SHA-256.
+        self.assertRegex(text, r"\n +SCRIPT_URL: https://raw\.githubusercontent\.com/[\w-]+/[\w-]+/[0-9a-f]{40}/")
+        self.assertRegex(text, r"\n +SCRIPT_SHA256: [0-9a-f]{64}\n")
+        self.assertIn('echo "${SCRIPT_SHA256}  ${script}" | sha256sum -c -', text)
 
     def test_watcher_holds_no_secret_and_runs_only_on_main(self):
         text = workflow("watch-hotio.yml")
