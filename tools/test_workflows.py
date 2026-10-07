@@ -34,6 +34,28 @@ class PrivilegedJobTests(unittest.TestCase):
             self.assertEqual(ACTION_KEYS.findall(text), [], path.name)
             self.assertIn(f"if: {MAIN_ONLY}", text, path.name)
 
+    def test_immortality_keeps_the_schedules_alive(self):
+        text = workflow("immortality.yml")
+        self.assertIn("# Copy as .github/workflows/immortality.yml (design/watchdog.md).", text)
+        self.assertIn(f"if: {MAIN_ONLY}", text)
+        self.assertIn("GITHUB_TOKEN: ${{ secrets.IMMORTALITY_TOKEN }}", text)
+        self.assertIn("REPOS: ${{ github.repository }}", text)
+        # The script is pinned to a commit and checked against a pinned SHA-256.
+        self.assertRegex(text, r"\n +SCRIPT_URL: https://raw\.githubusercontent\.com/[\w-]+/[\w-]+/[0-9a-f]{40}/")
+        self.assertRegex(text, r"\n +SCRIPT_SHA256: [0-9a-f]{64}\n")
+        self.assertIn('echo "${SCRIPT_SHA256}  ${script}" | sha256sum -c -', text)
+
+    def test_base_image_immortality_differs_only_in_header_and_branch_guard(self):
+        # base-image's default branch is `workflows`, so its copy names the
+        # default branch instead of main; everything else stays in step.
+        ours = workflow("immortality.yml")
+        theirs = (WORKFLOWS.parent.parent / "mirrors/base-image/immortality.yml").read_text()
+        header = ("# SPDX-License-Identifier: AGPL-3.0-only\n"
+                  "# Copy as .github/workflows/immortality.yml (design/watchdog.md).\n")
+        self.assertTrue(ours.startswith(header))
+        default_branch = "github.ref == format('refs/heads/{0}', github.event.repository.default_branch)"
+        self.assertEqual(ours[len(header):].replace(f"if: {MAIN_ONLY}", f"if: {default_branch}"), theirs)
+
     def test_watcher_holds_no_secret_and_runs_only_on_main(self):
         text = workflow("watch-hotio.yml")
         self.assertIsNone(SECRET.search(text))
