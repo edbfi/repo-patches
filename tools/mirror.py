@@ -22,6 +22,9 @@ ROOT = Path(__file__).resolve().parent.parent
 OVERLAY = ROOT / "hweb-content"
 MIRROR_FILES = ROOT / "mirrors"
 PULLFROG = ROOT / ".github/workflows/pullfrog.yml"
+# Re-enables base-image's schedules monthly (call-update runs from `workflows`,
+# its default branch); this repository runs the same bytes for watch-hotio.
+IMMORTALITY = ROOT / ".github/workflows/immortality.yml"
 
 BOT_NAME = "github-actions[bot]"
 BOT_EMAIL = "41898282+github-actions[bot]@users.noreply.github.com"
@@ -166,6 +169,7 @@ def adapt_base_image(work, branch):
     (work / "README.md").write_bytes((MIRROR_FILES / "base-image/README.md").read_bytes())
     if branch == "workflows":
         (work / ".github/workflows/pullfrog.yml").write_bytes(PULLFROG.read_bytes())
+        (work / ".github/workflows/immortality.yml").write_bytes(IMMORTALITY.read_bytes())
 
 
 def adapt_website(work, published):

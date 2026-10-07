@@ -27,7 +27,8 @@ Stdlib-only Python tools (`tools/`) and two workflows that keep `edbfi/base-imag
 - Logos are kept only when the file stem equals a container name, or is `flood`. Any other logo is deleted from the candidate.
 - `includes/*.md`, `docs/javascripts/*.js` and `extra-13.css` come from upstream and are checked, never vendored. Don't add copies to `hweb-content/`. If you change the required list in `apply_overlay()`, update the fixture file lists in `tools/test_site_overlay.py` and `tools/test_mirror.py`.
 - Keep the `e74-*` CSS class names. `docs/index.md` uses them.
-- A change to `hweb-content/`, `mirrors/`, this repository's `pullfrog.yml` or the edits reaches the mirrors at the next watcher run (it detects changed adaptations), or at once with a dispatched sync.
+- `.github/workflows/immortality.yml` is the canonical copy every edbfi repository with a schedule carries byte for byte; the sync adds it to base-image's `workflows` branch. It names the default branch instead of `main` so the same bytes work there. Change it in every copy or not at all.
+- A change to `hweb-content/`, `mirrors/`, this repository's `pullfrog.yml` or `immortality.yml`, or the edits reaches the mirrors at the next watcher run (it detects changed adaptations), or at once with a dispatched sync.
 
 ## Adding or removing a container page
 
