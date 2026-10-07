@@ -200,11 +200,15 @@ class BaseImageTests(MirrorFixture):
         self.assertNotIn(b"edbfi/base/", maintenance)
         self.assertFalse(exists(self.dest, top, "renovate.json"))
         self.assertEqual(show(self.dest, top, ".github/workflows/pullfrog.yml"), mirror.PULLFROG.read_bytes())
+        # The default branch carries this repository's immortality job, byte for byte.
+        self.assertEqual(show(self.dest, top, ".github/workflows/immortality.yml"),
+                         (mirror.ROOT / ".github/workflows/immortality.yml").read_bytes())
         changed = git(self.dest, "diff", "--name-status", head(self.hotio, "workflows"), top).splitlines()
         self.assertEqual(sorted(changed), sorted([
             "M\t.github/workflows/build-on-call.yml", "M\t.github/workflows/call-build.yml",
             "M\t.github/workflows/call-update.yml", "M\t.github/workflows/maintenance.yml",
-            "A\t.github/workflows/pullfrog.yml", "A\tREADME.md", "D\trenovate.json"]))
+            "A\t.github/workflows/immortality.yml", "A\t.github/workflows/pullfrog.yml",
+            "A\tREADME.md", "D\trenovate.json"]))
 
     def test_image_banner_matches_edbfi(self):
         self.sync("base-image:alpinevpn")
@@ -219,6 +223,7 @@ class BaseImageTests(MirrorFixture):
         self.assertEqual(git(self.dest, "ls-tree", top, "root/etc/s6-overlay/s6-rc.d/init-setup/run").split()[0],
                          "100755")
         self.assertFalse(exists(self.dest, top, ".github/workflows/pullfrog.yml"))
+        self.assertFalse(exists(self.dest, top, ".github/workflows/immortality.yml"))
         changed = git(self.dest, "diff", "--name-only", head(self.hotio, "alpinevpn"), top).splitlines()
         self.assertEqual(sorted(changed), [".github/workflows/call-build.yml", ".github/workflows/call-update.yml",
                                            "README.md", "root/etc/s6-overlay/s6-rc.d/init-setup/run"])
@@ -344,6 +349,7 @@ class WebsiteTests(MirrorFixture):
         self.assertEqual(show(self.dweb, top, "docs/CNAME").strip(), b"web.edb.fi")
         self.assertEqual(show(self.dweb, top, "README.md"), (mirror.MIRROR_FILES / "website/README.md").read_bytes())
         self.assertEqual(show(self.dweb, top, ".github/workflows/pullfrog.yml"), mirror.PULLFROG.read_bytes())
+        self.assertFalse(exists(self.dweb, top, ".github/workflows/immortality.yml"))  # no schedule there
 
     def test_tag_update_during_sync_is_kept(self):
         original = mirror.push
@@ -404,6 +410,13 @@ class WatchTests(MirrorFixture):
         (files / "website/README.md").write_bytes((mirror.MIRROR_FILES / "website/README.md").read_bytes())
         with mock.patch.object(mirror, "MIRROR_FILES", files):
             self.assertEqual(self.watch(), ["base-image:workflows", "base-image:alpinevpn", "base-image:noblevpn"])
+
+    def test_changed_immortality_job_triggers_the_workflows_branch(self):
+        self.sync()
+        changed = Path(self.temp.name) / "immortality.yml"
+        changed.write_bytes(mirror.IMMORTALITY.read_bytes() + b"# changed\n")
+        with mock.patch.object(mirror, "IMMORTALITY", changed):
+            self.assertEqual(self.watch(), ["base-image:workflows"])
 
     def test_hotio_rewind_triggers_a_sync(self):
         self.sync()
