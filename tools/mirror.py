@@ -22,9 +22,10 @@ ROOT = Path(__file__).resolve().parent.parent
 OVERLAY = ROOT / "hweb-content"
 MIRROR_FILES = ROOT / "mirrors"
 PULLFROG = ROOT / ".github/workflows/pullfrog.yml"
-# Re-enables base-image's schedules monthly (call-update runs from `workflows`,
-# its default branch); this repository runs the same bytes for watch-hotio.
-IMMORTALITY = ROOT / ".github/workflows/immortality.yml"
+# Re-enables base-image's schedules monthly. call-update runs from `workflows`,
+# base-image's default branch, so this copy names the default branch where this
+# repository's edbfi-ci template copy names main.
+IMMORTALITY = MIRROR_FILES / "base-image/immortality.yml"
 
 BOT_NAME = "github-actions[bot]"
 BOT_EMAIL = "41898282+github-actions[bot]@users.noreply.github.com"

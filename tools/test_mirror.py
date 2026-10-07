@@ -200,9 +200,13 @@ class BaseImageTests(MirrorFixture):
         self.assertNotIn(b"edbfi/base/", maintenance)
         self.assertFalse(exists(self.dest, top, "renovate.json"))
         self.assertEqual(show(self.dest, top, ".github/workflows/pullfrog.yml"), mirror.PULLFROG.read_bytes())
-        # The default branch carries this repository's immortality job, byte for byte.
-        self.assertEqual(show(self.dest, top, ".github/workflows/immortality.yml"),
-                         (mirror.ROOT / ".github/workflows/immortality.yml").read_bytes())
+        # The default branch carries the base-image immortality job, byte for byte,
+        # guarded by the default branch (`workflows`), never by main.
+        immortality = show(self.dest, top, ".github/workflows/immortality.yml")
+        self.assertEqual(immortality, (mirror.MIRROR_FILES / "base-image/immortality.yml").read_bytes())
+        self.assertIn(b"if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)\n",
+                      immortality)
+        self.assertNotIn(b"refs/heads/main", immortality)
         changed = git(self.dest, "diff", "--name-status", head(self.hotio, "workflows"), top).splitlines()
         self.assertEqual(sorted(changed), sorted([
             "M\t.github/workflows/build-on-call.yml", "M\t.github/workflows/call-build.yml",
