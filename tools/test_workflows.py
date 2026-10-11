@@ -3,8 +3,11 @@
 
 A job that references a secret other than GITHUB_TOKEN runs only inline shell:
 no actions, containers or services, and when it can be dispatched, only on
-main. These line checks read each job's block, and the workflow level above
-``jobs:`` holds no secret; edbfi-ci's privileged-jobs hook is the full check.
+main. A workflow that runs only on pull_request can't be dispatched, so its
+job instead admits only Dependabot's own same-repository PRs (edbfi-ci's
+design/auto-merge.md rule 3). These line checks read each job's block, and
+the workflow level above ``jobs:`` holds no secret; edbfi-ci's
+privileged-jobs hook is the full check.
 """
 from pathlib import Path
 import re
@@ -14,6 +17,9 @@ WORKFLOWS = Path(__file__).resolve().parent.parent / ".github" / "workflows"
 SECRET = re.compile(r"\bsecrets\s*(\.\s*(?!github_token\b)\w|\[)", re.IGNORECASE)
 ACTION_KEYS = re.compile(r"^\s*(-\s+)?(uses|container|services)\s*:", re.MULTILINE)
 MAIN_ONLY = "github.ref == 'refs/heads/main'"
+DEPENDABOT_ONLY = ("github.event.pull_request.user.login == 'dependabot[bot]' && "
+                   "github.event.pull_request.head.repo.full_name == github.repository")
+EVENT = re.compile(r"  ([\w-]+):(?:\s|$)")
 
 
 def workflow(name):
@@ -65,6 +71,22 @@ def jobs(path):
     return split_jobs(path.read_text(), path.name)
 
 
+def triggers(head):
+    """The events of a block-style ``on:``; any other shape gives none, so
+    the job falls back to the main-only check. The block runs to the next
+    top-level key: blank, indented and comment lines (column 0 included)
+    stay in it, and every other line at indent 2 must be a plain event key."""
+    blocks = re.findall(r"^on:[ \t]*\n((?:(?:[ \t].*|#.*)?\n)*)", head, re.MULTILINE)
+    if len(blocks) != 1 or len(re.findall(r"^on\s*:", head, re.MULTILINE)) != 1:
+        return set()
+    keys = [line for line in blocks[0].splitlines()
+            if re.match(r"  [^\s#]", line)]
+    events = [EVENT.match(line) for line in keys]
+    if not all(events):
+        return set()
+    return {event.group(1) for event in events}
+
+
 class PrivilegedJobTests(unittest.TestCase):
     def test_secrets_are_only_used_inside_jobs(self):
         for path in WORKFLOWS.glob("*.yml"):
@@ -74,15 +96,32 @@ class PrivilegedJobTests(unittest.TestCase):
 
     def test_jobs_with_secrets_run_only_shell_on_main(self):
         privileged = [
-            (path.name, job_id, block)
+            (path.name, triggers(head), job_id, block)
             for path in WORKFLOWS.glob("*.yml")
-            for job_id, block in jobs(path)[1].items()
+            for head, by_id in [jobs(path)]
+            for job_id, block in by_id.items()
             if SECRET.search(block)
         ]
-        self.assertIn("sync-hotio.yml", [name for name, _, _ in privileged])
-        for name, job_id, block in privileged:
+        self.assertIn("sync-hotio.yml", [name for name, _, _, _ in privileged])
+        for name, events, job_id, block in privileged:
             self.assertEqual(ACTION_KEYS.findall(block), [], f"{name}: {job_id}")
-            self.assertIn(f"if: {MAIN_ONLY}", block, f"{name}: {job_id}")
+            guard = DEPENDABOT_ONLY if events == {"pull_request"} else MAIN_ONLY
+            # The job's own if:, not a step's or a comment.
+            self.assertRegex(block, rf"(?m)^    if: {re.escape(guard)}", f"{name}: {job_id}")
+
+    def test_only_a_pull_request_only_workflow_skips_the_main_guard(self):
+        self.assertEqual(triggers("on:\n  pull_request:\n    types: [opened]\njobs:\n"),
+                         {"pull_request"})
+        self.assertEqual(triggers("on:\n  pull_request:\n  workflow_dispatch:\n"),
+                         {"pull_request", "workflow_dispatch"})
+        self.assertEqual(triggers("on:\n  pull_request:\n# note\n  # note\n  workflow_dispatch:\njobs:\n"),
+                         {"pull_request", "workflow_dispatch"})
+        twice = "on:\n  pull_request:\njobs:\non:\n  workflow_dispatch:\n"
+        unread = ["on:\n  pull_request:\n" + key + "\n"
+                  for key in ("  workflow_dispatch :", '  "workflow_dispatch":', "  ? workflow_dispatch")]
+        for text in ("on: pull_request\n", "on: [pull_request]\n", "true:\n  pull_request:\n", twice, *unread):
+            with self.subTest(text=text):
+                self.assertEqual(triggers(text), set())
 
     def test_job_blocks_split_at_job_ids_only(self):
         _, by_id = jobs(WORKFLOWS / "ci.yml")
