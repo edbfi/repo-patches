@@ -20,15 +20,49 @@ def workflow(name):
     return (WORKFLOWS / name).read_text()
 
 
-def jobs(path):
-    """The workflow level above ``jobs:``, and each job's lines by job id.
+JOB_ID = re.compile(r"^  ([\w-]+):\s*(#.*)?$")
+ANCHOR_OR_ALIAS = re.compile(r"(?:^\s*-\s+|:\s+)[&*][\w-]+(?=\s|$)", re.MULTILINE)
 
-    A job starts at a two-space ``id:`` line under ``jobs:``; deeper keys are
-    indented further, so they stay inside their job.
+
+def split_jobs(text, name):
+    """The workflow-level lines and each job's lines by job id.
+
+    Only the block style these workflows use is accepted: ``jobs:`` alone at
+    column 0, each job id indented two spaces, everything inside a job
+    indented further, and no YAML anchors or aliases (an aliased step list
+    would hide its ``uses:`` from the job's text). A top-level key after
+    ``jobs:`` is workflow level again. Any other shape fails here instead of
+    being checked as if it had been split correctly.
     """
-    head, _, body = path.read_text().partition("\njobs:\n")
-    blocks = re.split(r"^(?=  [\w-]+:)", body, flags=re.MULTILINE)
-    return head, {b.split(":", 1)[0].strip(): b for b in blocks if b.strip()}
+    if ANCHOR_OR_ALIAS.search(text):
+        raise AssertionError(f"{name}: YAML anchors and aliases are not supported")
+    head, by_id, current, in_jobs = [], {}, None, False
+    for line in text.splitlines(keepends=True):
+        bare = line.strip()
+        if not line[:1].isspace() and bare and not bare.startswith("#"):
+            in_jobs, current = bare == "jobs:", None
+            if line.startswith("jobs:") and not in_jobs:
+                raise AssertionError(f"{name}: write jobs: in block style")
+            if not in_jobs:
+                head.append(line)
+            continue
+        if not in_jobs:
+            head.append(line)
+        elif not bare or bare.startswith("#"):
+            if current is not None:
+                by_id[current] += line
+        elif match := JOB_ID.match(line):
+            current = match.group(1)
+            by_id[current] = line
+        elif line.startswith("   ") and current is not None:
+            by_id[current] += line
+        else:
+            raise AssertionError(f"{name}: job ids must be indented two spaces: {bare}")
+    return "".join(head), by_id
+
+
+def jobs(path):
+    return split_jobs(path.read_text(), path.name)
 
 
 class PrivilegedJobTests(unittest.TestCase):
@@ -53,6 +87,27 @@ class PrivilegedJobTests(unittest.TestCase):
     def test_job_blocks_split_at_job_ids_only(self):
         _, by_id = jobs(WORKFLOWS / "ci.yml")
         self.assertEqual(list(by_id), ["checks", "ci-ok"])
+
+    def test_the_split_rejects_shapes_it_cannot_check(self):
+        four_spaces = "on: push\njobs:\n    a:\n      runs-on: x\n    b:\n      runs-on: x\n"
+        aliased = (
+            "on: push\njobs:\n  a:\n    steps: &shared\n      - uses: x/y@z\n"
+            "  b:\n    steps: *shared\n"
+        )
+        flow = "on: push\njobs: {a: {runs-on: x}}\n"
+        for text in (four_spaces, aliased, flow):
+            with self.subTest(text=text), self.assertRaises(AssertionError):
+                _ = split_jobs(text, "fixture.yml")
+
+    def test_workflow_level_keys_after_jobs_stay_workflow_level(self):
+        head, by_id = split_jobs(
+            "on: push\njobs:\n  a:\n    runs-on: x\n"
+            "env:\n  TOKEN: ${{ secrets.PERSONAL_TOKEN }}\n",
+            "fixture.yml",
+        )
+        self.assertEqual(list(by_id), ["a"])
+        self.assertIsNotNone(SECRET.search(head))
+        self.assertIsNone(SECRET.search(by_id["a"]))
 
     def test_immortality_keeps_the_schedules_alive(self):
         text = workflow("immortality.yml")
