@@ -19,7 +19,7 @@ ACTION_KEYS = re.compile(r"^\s*(-\s+)?(uses|container|services)\s*:", re.MULTILI
 MAIN_ONLY = "github.ref == 'refs/heads/main'"
 DEPENDABOT_ONLY = ("github.event.pull_request.user.login == 'dependabot[bot]' && "
                    "github.event.pull_request.head.repo.full_name == github.repository")
-TRIGGER = re.compile(r"^  ([\w-]+):", re.MULTILINE)
+EVENT = re.compile(r"  ([\w-]+):(?:\s|$)")
 
 
 def workflow(name):
@@ -75,11 +75,16 @@ def triggers(head):
     """The events of a block-style ``on:``; any other shape gives none, so
     the job falls back to the main-only check. The block runs to the next
     top-level key: blank, indented and comment lines (column 0 included)
-    stay in it."""
+    stay in it, and every other line at indent 2 must be a plain event key."""
     blocks = re.findall(r"^on:[ \t]*\n((?:(?:[ \t].*|#.*)?\n)*)", head, re.MULTILINE)
     if len(blocks) != 1 or len(re.findall(r"^on\s*:", head, re.MULTILINE)) != 1:
         return set()
-    return set(TRIGGER.findall(blocks[0]))
+    keys = [line for line in blocks[0].splitlines()
+            if re.match(r"  [^\s#]", line)]
+    events = [EVENT.match(line) for line in keys]
+    if not all(events):
+        return set()
+    return {event.group(1) for event in events}
 
 
 class PrivilegedJobTests(unittest.TestCase):
@@ -101,7 +106,8 @@ class PrivilegedJobTests(unittest.TestCase):
         for name, events, job_id, block in privileged:
             self.assertEqual(ACTION_KEYS.findall(block), [], f"{name}: {job_id}")
             guard = DEPENDABOT_ONLY if events == {"pull_request"} else MAIN_ONLY
-            self.assertIn(f"if: {guard}", block, f"{name}: {job_id}")
+            # The job's own if:, not a step's or a comment.
+            self.assertRegex(block, rf"(?m)^    if: {re.escape(guard)}", f"{name}: {job_id}")
 
     def test_only_a_pull_request_only_workflow_skips_the_main_guard(self):
         self.assertEqual(triggers("on:\n  pull_request:\n    types: [opened]\njobs:\n"),
@@ -111,7 +117,9 @@ class PrivilegedJobTests(unittest.TestCase):
         self.assertEqual(triggers("on:\n  pull_request:\n# note\n  # note\n  workflow_dispatch:\njobs:\n"),
                          {"pull_request", "workflow_dispatch"})
         twice = "on:\n  pull_request:\njobs:\non:\n  workflow_dispatch:\n"
-        for text in ("on: pull_request\n", "on: [pull_request]\n", "true:\n  pull_request:\n", twice):
+        unread = ["on:\n  pull_request:\n" + key + "\n"
+                  for key in ("  workflow_dispatch :", '  "workflow_dispatch":', "  ? workflow_dispatch")]
+        for text in ("on: pull_request\n", "on: [pull_request]\n", "true:\n  pull_request:\n", twice, *unread):
             with self.subTest(text=text):
                 self.assertEqual(triggers(text), set())
 
