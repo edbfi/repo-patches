@@ -3,8 +3,8 @@
 
 A job that references a secret other than GITHUB_TOKEN runs only inline shell:
 no actions, containers or services, and when it can be dispatched, only on
-main. Every workflow here has one job, so these line checks read whole files;
-edbfi-ci's privileged-jobs hook is the full check.
+main. These line checks read each job's block, and the workflow level above
+``jobs:`` holds no secret; edbfi-ci's privileged-jobs hook is the full check.
 """
 from pathlib import Path
 import re
@@ -20,19 +20,94 @@ def workflow(name):
     return (WORKFLOWS / name).read_text()
 
 
+JOB_ID = re.compile(r"^  ([\w-]+):\s*(#.*)?$")
+ANCHOR_OR_ALIAS = re.compile(r"(?:^\s*-\s+|:\s+)[&*][\w-]+(?=\s|$)", re.MULTILINE)
+
+
+def split_jobs(text, name):
+    """The workflow-level lines and each job's lines by job id.
+
+    Only the block style these workflows use is accepted: ``jobs:`` alone at
+    column 0, each job id indented two spaces, everything inside a job
+    indented further, and no YAML anchors or aliases (an aliased step list
+    would hide its ``uses:`` from the job's text). A top-level key after
+    ``jobs:`` is workflow level again. Any other shape fails here instead of
+    being checked as if it had been split correctly.
+    """
+    if ANCHOR_OR_ALIAS.search(text):
+        raise AssertionError(f"{name}: YAML anchors and aliases are not supported")
+    head, by_id, current, in_jobs = [], {}, None, False
+    for line in text.splitlines(keepends=True):
+        bare = line.strip()
+        if not line[:1].isspace() and bare and not bare.startswith("#"):
+            in_jobs, current = bare == "jobs:", None
+            if line.startswith("jobs:") and not in_jobs:
+                raise AssertionError(f"{name}: write jobs: in block style")
+            if not in_jobs:
+                head.append(line)
+            continue
+        if not in_jobs:
+            head.append(line)
+        elif not bare or bare.startswith("#"):
+            if current is not None:
+                by_id[current] += line
+        elif match := JOB_ID.match(line):
+            current = match.group(1)
+            by_id[current] = line
+        elif line.startswith("   ") and current is not None:
+            by_id[current] += line
+        else:
+            raise AssertionError(f"{name}: job ids must be indented two spaces: {bare}")
+    return "".join(head), by_id
+
+
+def jobs(path):
+    return split_jobs(path.read_text(), path.name)
+
+
 class PrivilegedJobTests(unittest.TestCase):
-    def test_each_workflow_has_one_job(self):
+    def test_secrets_are_only_used_inside_jobs(self):
         for path in WORKFLOWS.glob("*.yml"):
-            jobs = path.read_text().split("\njobs:\n", 1)[1]
-            self.assertEqual(len(re.findall(r"^  [\w-]+:", jobs, re.MULTILINE)), 1, path.name)
+            head, by_id = jobs(path)
+            self.assertTrue(by_id, path.name)
+            self.assertIsNone(SECRET.search(head), path.name)
 
     def test_jobs_with_secrets_run_only_shell_on_main(self):
-        privileged = [path for path in WORKFLOWS.glob("*.yml") if SECRET.search(path.read_text())]
-        self.assertIn(WORKFLOWS / "sync-hotio.yml", privileged)
-        for path in privileged:
-            text = path.read_text()
-            self.assertEqual(ACTION_KEYS.findall(text), [], path.name)
-            self.assertIn(f"if: {MAIN_ONLY}", text, path.name)
+        privileged = [
+            (path.name, job_id, block)
+            for path in WORKFLOWS.glob("*.yml")
+            for job_id, block in jobs(path)[1].items()
+            if SECRET.search(block)
+        ]
+        self.assertIn("sync-hotio.yml", [name for name, _, _ in privileged])
+        for name, job_id, block in privileged:
+            self.assertEqual(ACTION_KEYS.findall(block), [], f"{name}: {job_id}")
+            self.assertIn(f"if: {MAIN_ONLY}", block, f"{name}: {job_id}")
+
+    def test_job_blocks_split_at_job_ids_only(self):
+        _, by_id = jobs(WORKFLOWS / "ci.yml")
+        self.assertEqual(list(by_id), ["checks", "ci-ok"])
+
+    def test_the_split_rejects_shapes_it_cannot_check(self):
+        four_spaces = "on: push\njobs:\n    a:\n      runs-on: x\n    b:\n      runs-on: x\n"
+        aliased = (
+            "on: push\njobs:\n  a:\n    steps: &shared\n      - uses: x/y@z\n"
+            "  b:\n    steps: *shared\n"
+        )
+        flow = "on: push\njobs: {a: {runs-on: x}}\n"
+        for text in (four_spaces, aliased, flow):
+            with self.subTest(text=text), self.assertRaises(AssertionError):
+                _ = split_jobs(text, "fixture.yml")
+
+    def test_workflow_level_keys_after_jobs_stay_workflow_level(self):
+        head, by_id = split_jobs(
+            "on: push\njobs:\n  a:\n    runs-on: x\n"
+            "env:\n  TOKEN: ${{ secrets.PERSONAL_TOKEN }}\n",
+            "fixture.yml",
+        )
+        self.assertEqual(list(by_id), ["a"])
+        self.assertIsNotNone(SECRET.search(head))
+        self.assertIsNone(SECRET.search(by_id["a"]))
 
     def test_immortality_keeps_the_schedules_alive(self):
         text = workflow("immortality.yml")

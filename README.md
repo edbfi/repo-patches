@@ -19,6 +19,7 @@ The push uses the Actions secret `PERSONAL_TOKEN`, so it triggers the mirrors' o
 
 - **Watch Hotio** (`watch-hotio.yml`): every 6 hours at minute 37, or by hand on `main`. Starts **Sync Hotio mirrors** on `main` for the branches `watch` lists. It holds no secret: without `PERSONAL_TOKEN`, the sync it starts fails with a clear error.
 - **immortality** (`immortality.yml`): monthly, or by hand on `main`. GitHub disables a public repository's schedules after 60 days without activity, and the watcher commits nothing here, so this job re-enables this repository's workflows with the `IMMORTALITY_TOKEN` secret (a personal access token with Actions read/write), which resets that counter. The file is edbfi-ci's [templates/immortality.yml](https://github.com/edbfi/edbfi-ci/blob/main/templates/immortality.yml) byte for byte (edbfi-ci D19, `design/watchdog.md` rule 11).
+- **CI** (`ci.yml`) and **PR policy** (`pr-policy.yml`): edbfi-ci's core CI for this repository's tooling. CI runs `prek run --all-files --hook-stage manual` (`.pre-commit-config.yaml`: the edbfi baseline hooks, actionlint, zizmor, edbfi-ci's `privileged-jobs` and the unit tests below) on pull requests, pushes to `main`, by hand and weekly; `ci-ok` is the required check. PR policy checks the PR title and commit sign-offs. Neither holds a secret, and neither starts or affects the sync.
 - **Sync Hotio mirrors** (`sync-hotio.yml`): run by the watcher, or by hand on `main` to force a sync (dispatched on another branch, its job is skipped). Input `branches` is a space-separated subset of `base-image:workflows base-image:alpinevpn base-image:noblevpn website:master` (empty means all four); `dry_run` builds and compares without pushing, and without the token. Each run writes every candidate's commits, changed files and diff against Hotio to its run summary: 768 KiB in total at most, so a larger report is cut at a line boundary, with the command that prints it in full. It fails with a clear error when `PERSONAL_TOKEN` is not set (dry runs excepted).
 
 The sync job holds `PERSONAL_TOKEN`, so it follows edbfi-ci's privileged-job rule ([design/security.md](https://github.com/edbfi/edbfi-ci/blob/main/design/security.md)): one job of inline shell and preinstalled tools (`git`, `python3`), with no actions, containers, services or caches; it fetches this repository's triggering commit with plain `git` (anonymously, as the repository is public) and runs only on `main`. The watcher references no secret, so it may use `actions/checkout`.
@@ -48,6 +49,7 @@ The overlay maps config/mkdocs.yml to the website root, docs content into docs/,
 
 ```sh
 python3 -m unittest discover -s tools -p 'test_*.py'
+prek run --all-files --hook-stage manual   # everything CI checks
 python3 tools/mirror.py watch
 python3 tools/mirror.py sync --dry-run --evidence /tmp/mirror-evidence
 ```
