@@ -72,9 +72,13 @@ def jobs(path):
 
 def triggers(head):
     """The events of a block-style ``on:``; any other shape gives none, so
-    the job falls back to the main-only check."""
-    match = re.search(r"^on:[ \t]*\n((?:(?:  .*)?\n)*)", head, re.MULTILINE)
-    return set(TRIGGER.findall(match.group(1))) if match else set()
+    the job falls back to the main-only check. The block runs to the next
+    top-level key: blank, indented and comment lines (column 0 included)
+    stay in it."""
+    blocks = re.findall(r"^on:[ \t]*\n((?:(?:[ \t].*|#.*)?\n)*)", head, re.MULTILINE)
+    if len(blocks) != 1 or len(re.findall(r"^on\s*:", head, re.MULTILINE)) != 1:
+        return set()
+    return set(TRIGGER.findall(blocks[0]))
 
 
 class PrivilegedJobTests(unittest.TestCase):
@@ -103,7 +107,10 @@ class PrivilegedJobTests(unittest.TestCase):
                          {"pull_request"})
         self.assertEqual(triggers("on:\n  pull_request:\n  workflow_dispatch:\n"),
                          {"pull_request", "workflow_dispatch"})
-        for text in ("on: pull_request\n", "on: [pull_request]\n", "true:\n  pull_request:\n"):
+        self.assertEqual(triggers("on:\n  pull_request:\n# note\n  # note\n  workflow_dispatch:\njobs:\n"),
+                         {"pull_request", "workflow_dispatch"})
+        twice = "on:\n  pull_request:\njobs:\non:\n  workflow_dispatch:\n"
+        for text in ("on: pull_request\n", "on: [pull_request]\n", "true:\n  pull_request:\n", twice):
             with self.subTest(text=text):
                 self.assertEqual(triggers(text), set())
 
