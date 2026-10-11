@@ -3,7 +3,9 @@
 
 A job that references a secret other than GITHUB_TOKEN runs only inline shell:
 no actions, containers or services, and when it can be dispatched, only on
-main. These line checks read each job's block, and the workflow level above
+main. A workflow that runs only on pull_request can't be dispatched, so its
+job instead admits only Dependabot's own same-repository PRs (edbfi-ci's
+design/auto-merge.md rule 3). These line checks read each job's block, and the workflow level above
 ``jobs:`` holds no secret; edbfi-ci's privileged-jobs hook is the full check.
 """
 from pathlib import Path
@@ -14,6 +16,9 @@ WORKFLOWS = Path(__file__).resolve().parent.parent / ".github" / "workflows"
 SECRET = re.compile(r"\bsecrets\s*(\.\s*(?!github_token\b)\w|\[)", re.IGNORECASE)
 ACTION_KEYS = re.compile(r"^\s*(-\s+)?(uses|container|services)\s*:", re.MULTILINE)
 MAIN_ONLY = "github.ref == 'refs/heads/main'"
+DEPENDABOT_ONLY = ("github.event.pull_request.user.login == 'dependabot[bot]' && "
+                   "github.event.pull_request.head.repo.full_name == github.repository")
+TRIGGER = re.compile(r"^  ([\w-]+):", re.MULTILINE)
 
 
 def workflow(name):
@@ -65,6 +70,13 @@ def jobs(path):
     return split_jobs(path.read_text(), path.name)
 
 
+def triggers(head):
+    """The events of a block-style ``on:``; any other shape gives none, so
+    the job falls back to the main-only check."""
+    match = re.search(r"^on:[ \t]*\n((?:(?:  .*)?\n)*)", head, re.MULTILINE)
+    return set(TRIGGER.findall(match.group(1))) if match else set()
+
+
 class PrivilegedJobTests(unittest.TestCase):
     def test_secrets_are_only_used_inside_jobs(self):
         for path in WORKFLOWS.glob("*.yml"):
@@ -74,15 +86,26 @@ class PrivilegedJobTests(unittest.TestCase):
 
     def test_jobs_with_secrets_run_only_shell_on_main(self):
         privileged = [
-            (path.name, job_id, block)
+            (path.name, triggers(head), job_id, block)
             for path in WORKFLOWS.glob("*.yml")
-            for job_id, block in jobs(path)[1].items()
+            for head, by_id in [jobs(path)]
+            for job_id, block in by_id.items()
             if SECRET.search(block)
         ]
-        self.assertIn("sync-hotio.yml", [name for name, _, _ in privileged])
-        for name, job_id, block in privileged:
+        self.assertIn("sync-hotio.yml", [name for name, _, _, _ in privileged])
+        for name, events, job_id, block in privileged:
             self.assertEqual(ACTION_KEYS.findall(block), [], f"{name}: {job_id}")
-            self.assertIn(f"if: {MAIN_ONLY}", block, f"{name}: {job_id}")
+            guard = DEPENDABOT_ONLY if events == {"pull_request"} else MAIN_ONLY
+            self.assertIn(f"if: {guard}", block, f"{name}: {job_id}")
+
+    def test_only_a_pull_request_only_workflow_skips_the_main_guard(self):
+        self.assertEqual(triggers("on:\n  pull_request:\n    types: [opened]\njobs:\n"),
+                         {"pull_request"})
+        self.assertEqual(triggers("on:\n  pull_request:\n  workflow_dispatch:\n"),
+                         {"pull_request", "workflow_dispatch"})
+        for text in ("on: pull_request\n", "on: [pull_request]\n", "true:\n  pull_request:\n"):
+            with self.subTest(text=text):
+                self.assertEqual(triggers(text), set())
 
     def test_job_blocks_split_at_job_ids_only(self):
         _, by_id = jobs(WORKFLOWS / "ci.yml")
