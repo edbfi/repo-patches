@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-"""The workflows follow edbfi-ci's privileged-job rule (design/security.md).
+"""The workflows follow edbfi-ci's privileged-job rule (privileged_jobs.py).
 
 A job that references a secret other than GITHUB_TOKEN runs only inline shell:
 no actions, containers or services, and when it can be dispatched, only on
 main. A workflow that runs only on pull_request can't be dispatched, so its
-job instead admits only Dependabot's own same-repository PRs (edbfi-ci's
-design/auto-merge.md rule 3). These line checks read each job's block, and
+job instead admits only Dependabot's own same-repository PRs. These line
+checks read each job's block, and
 the workflow level above ``jobs:`` holds no secret; edbfi-ci's
 privileged-jobs hook is the full check.
 """
@@ -150,7 +150,7 @@ class PrivilegedJobTests(unittest.TestCase):
 
     def test_immortality_keeps_the_schedules_alive(self):
         text = workflow("immortality.yml")
-        self.assertIn("# Copy as .github/workflows/immortality.yml (design/watchdog.md).", text)
+        self.assertIn("# Copy as .github/workflows/immortality.yml.", text)
         self.assertIn(f"if: {MAIN_ONLY}", text)
         self.assertIn("GITHUB_TOKEN: ${{ secrets.IMMORTALITY_TOKEN }}", text)
         self.assertIn("REPOS: ${{ github.repository }}", text)
@@ -165,7 +165,7 @@ class PrivilegedJobTests(unittest.TestCase):
         ours = workflow("immortality.yml")
         theirs = (WORKFLOWS.parent.parent / "mirrors/base-image/immortality.yml").read_text()
         header = ("# SPDX-License-Identifier: AGPL-3.0-only\n"
-                  "# Copy as .github/workflows/immortality.yml (design/watchdog.md).\n")
+                  "# Copy as .github/workflows/immortality.yml.\n")
         self.assertTrue(ours.startswith(header))
         default_branch = "github.ref == format('refs/heads/{0}', github.event.repository.default_branch)"
         self.assertEqual(ours[len(header):].replace(f"if: {MAIN_ONLY}", f"if: {default_branch}"), theirs)
