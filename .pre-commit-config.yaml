@@ -1,12 +1,13 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-# Copy as .pre-commit-config.yaml; preserve existing project hooks during rollout.
+# Copy to the repo root; preserve existing project hooks. Keep this filename: Dependabot's
+# pre-commit updater can't read prek.toml. CI runs prek run --all-files --hook-stage manual.
 default_install_hook_types: [pre-commit, commit-msg]
 default_stages: [pre-commit, manual]
 repos:
   - repo: builtin
     hooks:
       # hweb-content/ and mirrors/ are copied byte for byte into the website and
-      # base-image mirrors (edbfi-ci repos.md rule 9), so no fixer rewrites them.
+      # base-image mirrors, so no fixer rewrites them.
       - id: trailing-whitespace
         exclude: ^(hweb-content|mirrors)/
       - id: end-of-file-fixer

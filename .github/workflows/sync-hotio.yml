@@ -4,7 +4,7 @@
 # edbfi's adaptations, and force-pushes each changed branch with a lease.
 # Started by watch-hotio.yml, or by hand to force a run (empty branches = all).
 # The job holds PERSONAL_TOKEN, so it follows edbfi-ci's privileged-job rule
-# (design/security.md): inline shell and preinstalled tools only (no actions,
+# (privileged_jobs.py): inline shell and preinstalled tools only (no actions,
 # containers, services or caches), and only on main.
 name: Sync Hotio mirrors
 on:

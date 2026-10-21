@@ -4,8 +4,8 @@
 # our one sync commit (and bot commits), or changed adaptations in this repo.
 # Hotio's bot commits (packages.txt, meta.json, tags) need no sync: the
 # mirrors' own call-update keeps those current.
-# This job holds no secret (edbfi-ci design/security.md), so it may use
-# actions; sync-hotio.yml checks PERSONAL_TOKEN and fails clearly without it.
+# This job holds no secret, so it may use actions; sync-hotio.yml checks
+# PERSONAL_TOKEN and fails clearly without it.
 name: Watch Hotio
 on:
   schedule:
