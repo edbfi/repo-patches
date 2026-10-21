@@ -5,9 +5,8 @@ A job that references a secret other than GITHUB_TOKEN runs only inline shell:
 no actions, containers or services, and when it can be dispatched, only on
 main. A workflow that runs only on pull_request can't be dispatched, so its
 job instead admits only Dependabot's own same-repository PRs. These line
-checks read each job's block, and
-the workflow level above ``jobs:`` holds no secret; edbfi-ci's
-privileged-jobs hook is the full check.
+checks read each job's block, and the workflow level above ``jobs:`` holds no
+secret; edbfi-ci's privileged-jobs hook is the full check.
 """
 from pathlib import Path
 import re
