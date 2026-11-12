@@ -168,6 +168,8 @@ def adapt_base_image(work, branch):
         edit(work, path, old, new)
     (work / "renovate.json").unlink(missing_ok=True)
     (work / "README.md").write_bytes((MIRROR_FILES / "base-image/README.md").read_bytes())
+    (work / "assets").mkdir(parents=True, exist_ok=True)
+    (work / "assets/base-image.svg").write_bytes((OVERLAY / "assets/img/image-logos/base-image.svg").read_bytes())
     if branch == "workflows":
         (work / ".github/workflows/pullfrog.yml").write_bytes(PULLFROG.read_bytes())
         (work / ".github/workflows/immortality.yml").write_bytes(IMMORTALITY.read_bytes())

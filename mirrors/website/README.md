@@ -1,4 +1,13 @@
-# website
+<p align="center">
+  <img src="docs/img/edbfi.svg" alt="website logo" width="256" height="256">
+</p>
+<h1 align="center">website</h1>
+<p align="center"><strong>Documentation for edbfi Docker images.</strong></p>
+<p align="center">
+  <a href="https://github.com/edbfi/website/blob/master/LICENSE"><img src="https://img.shields.io/badge/Upstream_license-GPL--3.0-blue?style=flat" alt="Upstream license: GPL-3.0"></a>
+  <a href="https://github.com/squidfunk/mkdocs-material"><img src="https://img.shields.io/badge/MkDocs_Material-526CFE?style=flat&amp;logo=materialformkdocs&amp;logoColor=white" alt="MkDocs Material"></a>
+  <a href="https://github.com/python/cpython" title="CPython implementation source"><img src="https://img.shields.io/badge/Python-3776AB?style=flat&amp;logo=python&amp;logoColor=white" alt="Python"></a>
+</p>
 
 The source of https://web.edb.fi: a generated mirror of [hotio/website](https://github.com/hotio/website). Do not edit it by hand or through pull requests.
 
