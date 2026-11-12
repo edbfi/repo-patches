@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/img/edbfi.svg" alt="website logo" width="256" height="256">
+  <img src="docs/img/edbfi.svg" alt="website logo" width="160" height="160">
 </p>
 <h1 align="center">website</h1>
 <p align="center"><strong>Documentation for edbfi Docker images.</strong></p>
@@ -15,4 +15,4 @@ The source of https://web.edb.fi: a generated mirror of [hotio/website](https://
 
 The edbfi commit applies the `hweb-content/` overlay (configuration, home page, FAQ, container pages, logos, styles and the `web.edb.fi` CNAME), removes the containers, guides and scripts edbfi does not publish, keeps each container's tag data (`docs/containers/*-tags.json` and the tags table in its page) exactly as published here, removes `renovate.json`, and adds the Pullfrog review workflow and this README. Hotio's Pages workflow deploys every push to `master`.
 
-Hotio's content is GPL-3.0 ([LICENSE](LICENSE)); the overlay comes from edbfi/repo-patches under its AGPL-3.0 licence.
+Hotio's content is GPL-3.0 ([LICENSE](LICENSE)). Original overlay code from [edbfi/repo-patches](https://github.com/edbfi/repo-patches#license) is licensed under the GNU Affero General Public License, version 3 or (at your option) any later version (`AGPL-3.0-or-later`). Upstream-derived content and third-party artwork retain their existing licences and attribution.

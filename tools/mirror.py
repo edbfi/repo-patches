@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: AGPL-3.0-only
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Keep edbfi/base-image and edbfi/website as Hotio's latest commit plus one edbfi commit.
 
 `watch` lists the branches that need a sync; `sync` rebuilds each selected

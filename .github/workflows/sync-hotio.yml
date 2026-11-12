@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: AGPL-3.0-only
+# SPDX-License-Identifier: AGPL-3.0-or-later
 # Rebuilds edbfi/base-image (workflows, alpinevpn, noblevpn) and edbfi/website
 # (master) as Hotio's latest commit plus one github-actions[bot] commit with
 # edbfi's adaptations, and force-pushes each changed branch with a lease.
