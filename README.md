@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="hweb-content/assets/img/edbfi.svg" alt="repo-patches logo" width="256" height="256">
+  <img src="hweb-content/assets/img/edbfi.svg" alt="repo-patches logo" width="160" height="160">
 </p>
 <h1 align="center">repo-patches</h1>
 <p align="center"><strong>Maintain edbfi adaptations of Hotio base images and documentation.</strong></p>
 <p align="center">
-  <a href="https://github.com/edbfi/repo-patches/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0--only-blue?style=flat" alt="License: AGPL-3.0-only"></a>
+  <a href="https://github.com/edbfi/repo-patches/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0--or--later-blue?style=flat" alt="License: AGPL-3.0-or-later"></a>
   <a href="https://github.com/python/cpython" title="CPython implementation source"><img src="https://img.shields.io/badge/Python-3776AB?style=flat&amp;logo=python&amp;logoColor=white" alt="Python"></a>
   <a href="https://github.com/actions/runner" title="GitHub Actions runner source"><img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat&amp;logo=githubactions&amp;logoColor=white" alt="GitHub Actions"></a>
 </p>
@@ -67,4 +67,6 @@ python3 tools/mirror.py sync --dry-run --evidence /tmp/mirror-evidence
 
 ## License
 
-[AGPL-3.0-only](LICENSE). The mirrors keep Hotio's GPL-3.0 licence and attribution.
+Original code in this repository is licensed under the [GNU Affero General Public License](LICENSE), version 3 or (at your option) any later version (`AGPL-3.0-or-later`).
+
+Upstream-derived content and third-party artwork retain their existing licences and attribution. The generated mirrors keep Hotio's GPL-3.0 licence; this grant does not relicense those materials.

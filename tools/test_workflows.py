@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: AGPL-3.0-only
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """The workflows follow edbfi-ci's privileged-job rule (privileged_jobs.py).
 
 A job that references a secret other than GITHUB_TOKEN runs only inline shell:
@@ -163,7 +163,7 @@ class PrivilegedJobTests(unittest.TestCase):
         # default branch instead of main; everything else stays in step.
         ours = workflow("immortality.yml")
         theirs = (WORKFLOWS.parent.parent / "mirrors/base-image/immortality.yml").read_text()
-        header = ("# SPDX-License-Identifier: AGPL-3.0-only\n"
+        header = ("# SPDX-License-Identifier: AGPL-3.0-or-later\n"
                   "# Copy as .github/workflows/immortality.yml.\n")
         self.assertTrue(ours.startswith(header))
         default_branch = "github.ref == format('refs/heads/{0}', github.event.repository.default_branch)"

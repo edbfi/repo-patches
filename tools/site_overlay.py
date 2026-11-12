@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: AGPL-3.0-only
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Apply the canonical documentation overlay to a website tree."""
 import json
 from pathlib import Path

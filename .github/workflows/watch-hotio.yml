@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: AGPL-3.0-only
+# SPDX-License-Identifier: AGPL-3.0-or-later
 # Starts sync-hotio.yml for the mirror branches that need it: new non-bot
 # commits on Hotio's branch, a mirror branch that is not Hotio's commit plus
 # our one sync commit (and bot commits), or changed adaptations in this repo.

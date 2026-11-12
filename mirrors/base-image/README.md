@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/base-image.svg" alt="base-image logo" width="256" height="256">
+  <img src="assets/base-image.svg" alt="base-image logo" width="160" height="160">
 </p>
 <h1 align="center">base-image</h1>
 <p align="center"><strong>Shared Hotio-derived container build workflows and VPN base images.</strong></p>
