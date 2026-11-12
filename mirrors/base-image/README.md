@@ -1,4 +1,14 @@
-# base-image
+<p align="center">
+  <img src="assets/base-image.svg" alt="base-image logo" width="256" height="256">
+</p>
+<h1 align="center">base-image</h1>
+<p align="center"><strong>Shared Hotio-derived container build workflows and VPN base images.</strong></p>
+<p align="center">
+  <a href="https://github.com/edbfi/base-image/blob/workflows/LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat" alt="License: GPL-3.0"></a>
+  <a href="https://github.com/actions/runner" title="GitHub Actions runner source"><img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat&amp;logo=githubactions&amp;logoColor=white" alt="GitHub Actions"></a>
+  <a href="https://github.com/moby/moby" title="Docker Engine foundation source (Moby)"><img src="https://img.shields.io/badge/Docker-2496ED?style=flat&amp;logo=docker&amp;logoColor=white" alt="Docker"></a>
+  <a href="https://github.com/just-containers/s6-overlay"><img src="https://img.shields.io/badge/s6--overlay-222222?style=flat" alt="s6-overlay"></a>
+</p>
 
 A generated mirror of [hotio/base](https://github.com/hotio/base). Do not edit it by hand or through pull requests.
 

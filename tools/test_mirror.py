@@ -187,6 +187,14 @@ class BaseImageTests(MirrorFixture):
                           show(self.dest, top, ".github/workflows/call-update.yml"))
             self.assertEqual(show(self.dest, top, "README.md"),
                              (mirror.MIRROR_FILES / "base-image/README.md").read_bytes())
+            self.assertIn(b'src="assets/base-image.svg"', show(self.dest, top, "README.md"))
+            self.assertEqual(show(self.dest, top, "assets/base-image.svg"),
+                             (mirror.OVERLAY / "assets/img/image-logos/base-image.svg").read_bytes())
+            if branch != "workflows":
+                changed = git(self.dest, "diff", "--name-only", head(self.hotio, branch), top).splitlines()
+                self.assertEqual(sorted(changed), [
+                    ".github/workflows/call-build.yml", ".github/workflows/call-update.yml",
+                    "README.md", "assets/base-image.svg", "root/etc/s6-overlay/s6-rc.d/init-setup/run"])
 
     def test_workflows_adaptations_keep_notify_and_maintenance(self):
         self.sync("base-image:workflows")
@@ -212,7 +220,7 @@ class BaseImageTests(MirrorFixture):
             "M\t.github/workflows/build-on-call.yml", "M\t.github/workflows/call-build.yml",
             "M\t.github/workflows/call-update.yml", "M\t.github/workflows/maintenance.yml",
             "A\t.github/workflows/immortality.yml", "A\t.github/workflows/pullfrog.yml",
-            "A\tREADME.md", "D\trenovate.json"]))
+            "A\tREADME.md", "A\tassets/base-image.svg", "D\trenovate.json"]))
 
     def test_image_banner_matches_edbfi(self):
         self.sync("base-image:alpinevpn")
@@ -230,7 +238,8 @@ class BaseImageTests(MirrorFixture):
         self.assertFalse(exists(self.dest, top, ".github/workflows/immortality.yml"))
         changed = git(self.dest, "diff", "--name-only", head(self.hotio, "alpinevpn"), top).splitlines()
         self.assertEqual(sorted(changed), [".github/workflows/call-build.yml", ".github/workflows/call-update.yml",
-                                           "README.md", "root/etc/s6-overlay/s6-rc.d/init-setup/run"])
+                                           "README.md", "assets/base-image.svg",
+                                           "root/etc/s6-overlay/s6-rc.d/init-setup/run"])
 
     def test_second_run_is_a_no_op(self):
         self.sync()
