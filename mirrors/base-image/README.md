@@ -8,6 +8,8 @@
   <a href="https://github.com/actions/runner" title="GitHub Actions runner source"><img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat&amp;logo=githubactions&amp;logoColor=white" alt="GitHub Actions"></a>
   <a href="https://github.com/moby/moby" title="Docker Engine foundation source (Moby)"><img src="https://img.shields.io/badge/Docker-2496ED?style=flat&amp;logo=docker&amp;logoColor=white" alt="Docker"></a>
   <a href="https://github.com/just-containers/s6-overlay"><img src="https://img.shields.io/badge/s6--overlay-222222?style=flat" alt="s6-overlay"></a>
+  <a href="https://github.com/edbfi/base-image/actions/workflows/call-build.yml?query=branch%3Aalpinevpn"><img src="https://img.shields.io/github/actions/workflow/status/edbfi/base-image/call-build.yml?branch=alpinevpn&amp;event=push&amp;label=CI%20alpinevpn&amp;style=flat" alt="CI alpinevpn"></a>
+  <a href="https://github.com/edbfi/base-image/actions/workflows/call-build.yml?query=branch%3Anoblevpn"><img src="https://img.shields.io/github/actions/workflow/status/edbfi/base-image/call-build.yml?branch=noblevpn&amp;event=push&amp;label=CI%20noblevpn&amp;style=flat" alt="CI noblevpn"></a>
 </p>
 
 A generated mirror of [hotio/base](https://github.com/hotio/base). Do not edit it by hand or through pull requests.

@@ -7,6 +7,7 @@
   <a href="https://github.com/edbfi/website/blob/master/LICENSE"><img src="https://img.shields.io/badge/Upstream_license-GPL--3.0-blue?style=flat" alt="Upstream license: GPL-3.0"></a>
   <a href="https://github.com/squidfunk/mkdocs-material"><img src="https://img.shields.io/badge/MkDocs_Material-526CFE?style=flat&amp;logo=materialformkdocs&amp;logoColor=white" alt="MkDocs Material"></a>
   <a href="https://github.com/python/cpython" title="CPython implementation source"><img src="https://img.shields.io/badge/Python-3776AB?style=flat&amp;logo=python&amp;logoColor=white" alt="Python"></a>
+  <a href="https://github.com/edbfi/website/actions/workflows/deploy-pages.yml?query=branch%3Amaster"><img src="https://img.shields.io/github/actions/workflow/status/edbfi/website/deploy-pages.yml?branch=master&amp;event=push&amp;label=CI&amp;style=flat" alt="CI"></a>
 </p>
 
 The source of https://web.edb.fi: a generated mirror of [hotio/website](https://github.com/hotio/website). Do not edit it by hand or through pull requests.

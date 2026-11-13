@@ -7,6 +7,7 @@
   <a href="https://github.com/edbfi/repo-patches/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0--or--later-blue?style=flat" alt="License: AGPL-3.0-or-later"></a>
   <a href="https://github.com/python/cpython" title="CPython implementation source"><img src="https://img.shields.io/badge/Python-3776AB?style=flat&amp;logo=python&amp;logoColor=white" alt="Python"></a>
   <a href="https://github.com/actions/runner" title="GitHub Actions runner source"><img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat&amp;logo=githubactions&amp;logoColor=white" alt="GitHub Actions"></a>
+  <a href="https://github.com/edbfi/repo-patches/actions/workflows/ci.yml?query=branch%3Amain"><img src="https://img.shields.io/github/actions/workflow/status/edbfi/repo-patches/ci.yml?branch=main&amp;event=push&amp;label=CI&amp;style=flat" alt="CI"></a>
 </p>
 
 Keeps `edbfi/base-image` (branches `workflows`, `alpinevpn`, `noblevpn`) and `edbfi/website` (`master`, served at https://web.edb.fi) as generated mirrors of [hotio/base](https://github.com/hotio/base) and [hotio/website](https://github.com/hotio/website). Hotio stays in charge of the design; the difference from him is always exactly one easy-to-read commit: every sync makes a branch Hotio's head plus that one commit, and only the mirrors' own bots add commits on top until the next sync. Nobody edits the mirrors by hand or through pull requests: change this repository instead.
